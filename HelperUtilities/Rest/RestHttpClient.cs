@@ -84,6 +84,14 @@ namespace HelperUtilties.Rest
 
                 return JsonConvert.DeserializeObject<OutputObjectType>(returnedJsonString.RemoveLineEndings(), set);
             }
+            catch (JsonSerializationException ex)
+            {
+                client.Dispose();
+                client = new HttpClient();
+                new Writer().log(new Exception("JSONSerializationException occurred which means that returned JSON Object didn't matched with the output object type class. See error logs for more detail. Inner Exception Details now.",ex));
+                object obj = null;
+                return (OutputObjectType)Convert.ChangeType(obj, typeof(OutputObjectType));
+            }
             catch (Exception ex)
             {
                 //var sp = ServicePointManager.FindServicePoint(new Uri(url));
@@ -91,8 +99,7 @@ namespace HelperUtilties.Rest
                 client.Dispose();
                 client = new HttpClient();
                 new Writer().log(ex);
-                object obj = null;
-                if (logExceptionMails) EmailLogger.SendMailException(ex, toAddr: System.Configuration.ConfigurationManager.AppSettings.Get("errorLogMail"));
+                object obj = null;                
                 return (OutputObjectType)Convert.ChangeType(obj, typeof(OutputObjectType));
             }
         }
@@ -140,6 +147,14 @@ namespace HelperUtilties.Rest
                 wr.log($"*********Request to url ends at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})", requireTimeStamp: false, fileName: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
                 return JsonConvert.DeserializeObject<OutputObjectType>(returnedJsonString.RemoveLineEndings(), set);
             }
+            catch (JsonSerializationException ex)
+            {
+                client.Dispose();
+                client = new HttpClient();
+                new Writer().log(new Exception("JSONSerializationException occurred which means that returned JSON Object didn't matched with the output object type class. See error logs for more detail. Inner Exception Details now.", ex));
+                object obj = null;
+                return (OutputObjectType)Convert.ChangeType(obj, typeof(OutputObjectType));
+            }
             catch (Exception ex)
             {
                 var sp = ServicePointManager.FindServicePoint(new Uri(url));
@@ -147,8 +162,7 @@ namespace HelperUtilties.Rest
                 client.Dispose();
                 client = new HttpClient();
                 wr.log(ex);
-                object obj1 = null;
-                if (logExceptionMails) EmailLogger.SendMailException(ex, toAddr: System.Configuration.ConfigurationManager.AppSettings.Get("errorLogMail"));
+                object obj1 = null;                
                 return (OutputObjectType)Convert.ChangeType(obj1, typeof(OutputObjectType));
             }
         }
