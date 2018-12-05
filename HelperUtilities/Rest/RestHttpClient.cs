@@ -152,8 +152,8 @@ namespace HelperUtilties.Rest
                 client.Dispose();
                 client = new HttpClient();
                 new Writer().log(new Exception("JSONSerializationException occurred which means that returned JSON Object didn't matched with the output object type class. See error logs for more detail. Inner Exception Details now.", ex));
-                object obj = null;
-                return (OutputObjectType)Convert.ChangeType(obj, typeof(OutputObjectType));
+                object obj1 = null;
+                return (OutputObjectType)Convert.ChangeType(obj1, typeof(OutputObjectType));
             }
             catch (Exception ex)
             {
