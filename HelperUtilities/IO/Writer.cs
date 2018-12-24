@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.IO;
+using System.Text;
 
 namespace HelperUtilties.IO
 {
@@ -49,6 +50,15 @@ namespace HelperUtilties.IO
                     sw.WriteLine(logText);
                 }
             }
+        }
+
+        public void log(string text,object obj, string dirPath = null, string fileName = null, bool appendFile = true, bool requireTimeStamp = true)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine(text);
+            sb.AppendLine("Object: ");
+            sb.Append(Newtonsoft.Json.JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.None));
+            log(sb.ToString(), dirPath, fileName,appendFile,requireTimeStamp);
         }
 
         public void log(Exception exception, string dirPath = null, string fileName = null)
