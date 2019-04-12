@@ -17,6 +17,11 @@ namespace HelperUtilties.IO
 
         public void log(string logText, object objectData, string dirPath = null, string fileName = null, bool appendFile = true, bool requireTimeStamp = true)
         {
+            /* 
+            var str = "<category title=\"FOO\">";
+            var result = System.Text.RegularExpressions.Regex.Unescape(str);
+            Console.WriteLine(result); //<category title="FOO">
+            */
             log(logText + ": " + Environment.NewLine + JsonConvert.SerializeObject(objectData, Formatting.None).Replace(@"\", " "),dirPath,fileName,appendFile,requireTimeStamp);            
         }
 
