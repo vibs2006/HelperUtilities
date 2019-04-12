@@ -4,13 +4,20 @@ using System.Text;
 
 namespace HelperUtilties.IO
 {
-    public class Writer
+     public class Writer
     {
         string dirPathInitial; string filePath; string defaultFileName;
+        public string logDirectoryCompletePath { get; set; }
+
         public Writer()
         {
             dirPathInitial = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"logs");
             defaultFileName = "log.txt";
+        }
+
+        public void log(string logText, object objectData, string dirPath = null, string fileName = null, bool appendFile = true, bool requireTimeStamp = true)
+        {
+            log(logText + ": " + Environment.NewLine + JsonConvert.SerializeObject(objectData, Formatting.None).Replace(@"\", " "),dirPath,fileName,appendFile,requireTimeStamp);            
         }
 
         /// <summary>
@@ -50,15 +57,6 @@ namespace HelperUtilties.IO
                     sw.WriteLine(logText);
                 }
             }
-        }
-
-        public void log(string text,object obj, string dirPath = null, string fileName = null, bool appendFile = true, bool requireTimeStamp = true)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine(text);
-            sb.AppendLine("Object: ");
-            sb.Append(Newtonsoft.Json.JsonConvert.SerializeObject(obj, Newtonsoft.Json.Formatting.None));
-            log(sb.ToString(), dirPath, fileName,appendFile,requireTimeStamp);
         }
 
         public void log(Exception exception, string dirPath = null, string fileName = null)
