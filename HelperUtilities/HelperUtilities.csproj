@@ -49,6 +49,7 @@
     <Compile Include="IO\EmailLogger.cs" />
     <Compile Include="IO\Writer.cs" />
     <Compile Include="Json\JsonUtilities.cs" />
+    <Compile Include="Net\NetMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rest\RestHttpClient.cs" />
   </ItemGroup>
