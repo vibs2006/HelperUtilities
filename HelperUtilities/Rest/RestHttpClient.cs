@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using HelperUtilties.IO;
+using HelperUtilities.IO;
 
 namespace HelperUtilties.Rest
 {
@@ -54,7 +55,7 @@ namespace HelperUtilties.Rest
             objHttpRequestMessage.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
             objHttpRequestMessage.Headers.Add("Authorization", ConfigurationManager.AppSettings.Get("AuthorizationHeader"));
             objHttpRequestMessage.RequestUri = new Uri(url);
-            if (logRestCalls) wr.log($"*********Request to url starts at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})", requireTimeStamp: false, fileName: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
+            if (logRestCalls) wr.log($"*********Request to url starts at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})", requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
             HttpResponseMessage objHttpResponseMessage = null;
             try
             {
@@ -67,8 +68,8 @@ namespace HelperUtilties.Rest
 
                 if (logRestCalls)
                 {
-                    wr.log(returnedJsonString, requireTimeStamp: false, fileName: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
-                    wr.log($"*********Request to url ends at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})", requireTimeStamp: false, fileName: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
+                    wr.log(returnedJsonString, requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
+                    wr.log($"*********Request to url ends at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})", requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
                 }
 
                 JsonSerializerSettings set = new JsonSerializerSettings
@@ -121,8 +122,8 @@ namespace HelperUtilties.Rest
             objHttpRequestMessage.RequestUri = new Uri(url);
             var stringContent = JsonConvert.SerializeObject(obj);
             objHttpRequestMessage.Content = new StringContent(stringContent,Encoding.UTF8,"application/json");
-            wr.log($"*********Request to url starts at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})",requireTimeStamp: false, fileName: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
-            wr.log(stringContent + Environment.NewLine, requireTimeStamp:false, fileName: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
+            wr.log($"*********Request to url starts at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})",requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
+            wr.log(stringContent + Environment.NewLine, requireTimeStamp:false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
             HttpResponseMessage objHttpResponseMessage = null;
             try
             {
@@ -143,8 +144,8 @@ namespace HelperUtilties.Rest
                 //{
                 //    throw new Exception("Test Exception");
                 //}
-                wr.log(returnedJsonString, requireTimeStamp:false, fileName: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
-                wr.log($"*********Request to url ends at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})", requireTimeStamp: false, fileName: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
+                wr.log(returnedJsonString, requireTimeStamp:false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
+                wr.log($"*********Request to url ends at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})", requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
                 return JsonConvert.DeserializeObject<OutputObjectType>(returnedJsonString.RemoveLineEndings(), set);
             }
             catch (JsonSerializationException ex)
