@@ -1,90 +1,136 @@
 using System;
 using System.IO;
-using System.Text;
+using Newtonsoft;
+using Newtonsoft.Json;
+using System.Diagnostics;
 
-namespace HelperUtilties.IO
+namespace HelperUtilities.IO
 {
-     public class Writer
+    public class Writer
     {
-        string dirPathInitial; string filePath; string defaultFileName;
+        string _dirPathInitial; string filePath; string _defaultFileName;
         public string logDirectoryCompletePath { get; set; }
 
-        public Writer()
+        public Writer(string baseAbsolulateDirectoryPath = null, string defaultFileNameWithExtension = null)
         {
-            dirPathInitial = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"logs");
-            defaultFileName = "log.txt";
+            if (string.IsNullOrEmpty(baseAbsolulateDirectoryPath))
+            {
+                _dirPathInitial = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+            }
+            else
+            {
+                _dirPathInitial = baseAbsolulateDirectoryPath;
+            }
+
+            if (string.IsNullOrEmpty(defaultFileNameWithExtension))
+            {
+                _defaultFileName = "Logs.txt";
+            }
+            else
+            {
+                _defaultFileName = defaultFileNameWithExtension;
+            }
+
         }
 
-        public void log(string logText, object objectData, string dirPath = null, string fileName = null, bool appendFile = true, bool requireTimeStamp = true)
+        public void log(string logText, object objectData, string dirPath = null, string fileName = null, bool appendFile = true, bool requireTimeStamp = true, Formatting formatting = Formatting.None)
         {
-            /* 
-            var str = "<category title=\"FOO\">";
-            var result = System.Text.RegularExpressions.Regex.Unescape(str);
-            Console.WriteLine(result); //<category title="FOO">
-            */
-            log(logText + ": " + Environment.NewLine + JsonConvert.SerializeObject(objectData, Formatting.None).Replace(@"\", " "),dirPath,fileName,appendFile,requireTimeStamp);            
+            log(logText + ": " + Environment.NewLine + JsonConvert.SerializeObject(objectData, formatting).Replace(@"\", " "),
+                dirPath,
+                fileName, appendFile, requireTimeStamp);
         }
+
+        public string InitialAbsoluteDirectoryPath
+        {
+            get
+            {
+                return _dirPathInitial;
+            }
+            set
+            {
+                _dirPathInitial = value;
+            }
+        }
+
+        public string DefaultFileNameWithExtension
+        {
+            get
+            {
+                return _defaultFileName;
+            }
+            set
+            {
+                _defaultFileName = value;
+            }
+        }
+
 
         /// <summary>
         /// Provide Filename with Extension
         /// </summary>
         /// <param name="logText"></param>
-        /// <param name="dirPath"></param>
-        /// <param name="fileName"> Provide Filename with Extension e.g output.csv</param>
+        /// <param name="folderName">Should be a RELATIVE directory path e.g provide only directory name without any slash etc</param>
+        /// <param name="filenameWithExtension">Provide Filename WITH Extension e.g output.csv</param>
         /// <param name="appendFile"></param>
-        public void log(string logText, string dirPath = null, string fileName = null, bool appendFile = true, bool requireTimeStamp = true)
+        public string log(string logText, string folderName = null, string filenameWithExtension = null, bool appendFile = true, bool requireTimeStamp = true)
         {
-            if (string.IsNullOrEmpty(dirPath))
+            if (string.IsNullOrEmpty(folderName))
             {
-                dirPath = dirPathInitial;
+                folderName = _dirPathInitial;
+            }
+            else
+            {
+                folderName = Path.Combine(_dirPathInitial, folderName);
             }
 
-            if (string.IsNullOrEmpty(fileName))
+            if (string.IsNullOrEmpty(filenameWithExtension))
             {
-                fileName = defaultFileName;
+                filenameWithExtension = _defaultFileName;
             }
 
-            if (!Directory.Exists(dirPath))
+            if (!Directory.Exists(folderName))
             {
-                Directory.CreateDirectory(dirPath);
+                Directory.CreateDirectory(folderName);
             }
 
-            filePath = Path.Combine(dirPath, fileName);
-            using (
-            StreamWriter sw = new StreamWriter(filePath, appendFile))
+            filePath = Path.Combine(folderName, filenameWithExtension);
+            using (StreamWriter sw = new StreamWriter(filePath, appendFile))
             {
                 if (requireTimeStamp)
                 {
-                    sw.WriteLine(logText + $" ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})");
+                    sw.WriteLine(logText + $" ({DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")})");
                 }
                 else
                 {
                     sw.WriteLine(logText);
                 }
             }
+            return filePath;
         }
 
-        public void log(Exception exception, string dirPath = null, string fileName = null)
+        /// <summary>
+        /// Logs Exceptions
+        /// </summary>
+        /// <param name="exception"></param>
+        /// <param name="folderName">Should be only Relative directory path e.g 'logs' etc</param>
+        /// <param name="fileNameWithExtension">Provide file name WITH extension e.g error.txt. If Don't provide this parameter. By default it'll take Error-log-yyyy-mm-dd.txt as errorlog file name</param>
+        public void log(Exception exception, string folderName = null, string fileNameWithExtension = null)
         {
-            if (string.IsNullOrEmpty(dirPath))
+
+            if (string.IsNullOrEmpty(fileNameWithExtension))
             {
-                dirPath = dirPathInitial;
+                fileNameWithExtension = "Error-Log" + DateTime.Now.ToString("-yyyy-MM-dd") + ".txt";
             }
 
-            if (string.IsNullOrEmpty(fileName))
+            if (string.IsNullOrEmpty(folderName))
             {
-                fileName = "Error-Log" + DateTime.Now.ToString("-yyyy-MM-dd") + ".txt";
-            }
-
-            if (!Directory.Exists(dirPath))
-            {
-                Directory.CreateDirectory(dirPath);
+                folderName = "Errors";
             }
 
             do
             {
-                log(exception.Source + " - " + exception.Message, dirPath, fileName);
-                log(exception.StackTrace, dirPath, fileName);
+                log(exception.Source + " - " + exception.Message, folderName, fileNameWithExtension);
+                log(exception.StackTrace, folderName, fileNameWithExtension);
                 exception = exception.InnerException;
             } while (exception != null);
 
@@ -97,6 +143,78 @@ namespace HelperUtilties.IO
             //    };
             //    Process.Start(startInfo);
             //}
+        }
+
+        public bool DeleteAllRootFilesAndFolders(string absoluteFolderPath = null)
+        {
+            if (string.IsNullOrEmpty(absoluteFolderPath)) absoluteFolderPath = _dirPathInitial;
+
+            DirectoryInfo di = new DirectoryInfo(absoluteFolderPath);
+
+            foreach (FileInfo file in di.GetFiles())
+            {
+                file.Delete();
+            }
+            foreach (DirectoryInfo dir in di.GetDirectories())
+            {
+                dir.Delete(true);
+            }
+            return true;
+        }
+
+        public bool DeleteFolder(string folderName, bool isAbsolutePath = true)
+        {
+            string absoluteFolderPath;
+            if (isAbsolutePath)
+            {
+                absoluteFolderPath = folderName;
+            }
+            else
+            {
+                absoluteFolderPath = Path.Combine(_dirPathInitial, folderName);
+            }
+
+            if (Directory.Exists(absoluteFolderPath))
+            {
+                DirectoryInfo di = new DirectoryInfo(absoluteFolderPath);
+                foreach (FileInfo file in di.GetFiles())
+                {
+                    file.Delete();
+                }
+                foreach (DirectoryInfo dir in di.GetDirectories())
+                {
+                    dir.Delete(true);
+                }
+            }
+
+            return true;
+        }
+
+        public bool DeleteFileWithAbsolutePath(string absoluteFileWithFullPath)
+        {
+            if (File.Exists(absoluteFileWithFullPath))
+            {
+                File.Delete(absoluteFileWithFullPath);
+            }
+            return true;
+        }
+
+        public void openExplorerDirectory(string dirAbsolutePath = null)
+        {
+            if (string.IsNullOrEmpty(dirAbsolutePath))
+            {
+                dirAbsolutePath = _dirPathInitial;
+            }
+
+            if (Directory.Exists(dirAbsolutePath))
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    Arguments = dirAbsolutePath,
+                    FileName = "explorer.exe"
+                };
+                Process.Start(startInfo);
+            }
         }
     }
 }
