@@ -22,6 +22,8 @@ namespace HelperUtilities.IO
                 _dirPathInitial = baseAbsolulateDirectoryPath;
             }
 
+            Directory.CreateDirectory(_dirPathInitial);
+
             if (string.IsNullOrEmpty(defaultFileNameWithExtension))
             {
                 _defaultFileName = "Logs.txt";
@@ -149,15 +151,18 @@ namespace HelperUtilities.IO
         {
             if (string.IsNullOrEmpty(absoluteFolderPath)) absoluteFolderPath = _dirPathInitial;
 
-            DirectoryInfo di = new DirectoryInfo(absoluteFolderPath);
+            if (Directory.Exists(absoluteFolderPath))
+            {
+                DirectoryInfo di = new DirectoryInfo(absoluteFolderPath);
 
-            foreach (FileInfo file in di.GetFiles())
-            {
-                file.Delete();
-            }
-            foreach (DirectoryInfo dir in di.GetDirectories())
-            {
-                dir.Delete(true);
+                foreach (FileInfo file in di.GetFiles())
+                {
+                    file.Delete();
+                }
+                foreach (DirectoryInfo dir in di.GetDirectories())
+                {
+                    dir.Delete(true);
+                }
             }
             return true;
         }
