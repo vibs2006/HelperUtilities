@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Configuration;
 
-namespace HelperUtilties.ConfigManager
+namespace HelperUtilities.ConfigManager
 {
     public static class ConfigMethods
     {

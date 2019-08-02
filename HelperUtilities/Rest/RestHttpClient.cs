@@ -5,10 +5,10 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using HelperUtilties.IO;
 using HelperUtilities.IO;
 
-namespace HelperUtilties.Rest
+
+namespace HelperUtilities.Rest
 {
     public static class RestHttpClient
     {

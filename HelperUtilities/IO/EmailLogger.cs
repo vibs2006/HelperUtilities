@@ -6,7 +6,7 @@ using System.Net.Mail;
 using System.Text;
 using System.Threading;
 
-namespace HelperUtilties.IO
+namespace HelperUtilities.IO
 {
     public static class EmailLogger
     {
