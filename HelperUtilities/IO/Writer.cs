@@ -3,6 +3,7 @@ using System.IO;
 using Newtonsoft;
 using Newtonsoft.Json;
 using System.Diagnostics;
+using HelperUtilities.Text;
 
 namespace HelperUtilities.IO
 {
@@ -11,6 +12,11 @@ namespace HelperUtilities.IO
         string _dirPathInitial; string filePath; string _defaultFileName;
         public string logDirectoryCompletePath { get; set; }
 
+        /// <summary>
+        /// Initial foldername is defaulted to 'logs' folder in app root location
+        /// </summary>
+        /// <param name="baseAbsolulateDirectoryPath">Should be a complete (absolute) file path e.g like 'c:\\yourpath' etc</param>
+        /// <param name="defaultFileNameWithExtension">Should be a file name with extension. If no file extension e.g 'yourfile.txt' is provided then .txt is appended in filename</param>
         public Writer(string baseAbsolulateDirectoryPath = null, string defaultFileNameWithExtension = null)
         {
             if (string.IsNullOrEmpty(baseAbsolulateDirectoryPath))
@@ -26,13 +32,25 @@ namespace HelperUtilities.IO
 
             if (string.IsNullOrEmpty(defaultFileNameWithExtension))
             {
-                _defaultFileName = "Logs.txt";
+                _defaultFileName = GetTodayLogFileName;
             }
             else
             {
                 _defaultFileName = defaultFileNameWithExtension;
             }
 
+            if (!_defaultFileName.Contains("."))
+            {
+                _defaultFileName = _defaultFileName + ".txt";
+            }
+        }
+
+        public string GetTodayLogFileName
+        {
+            get
+            {
+                return $"Logs-{DateTime.Now.ToString("yyyy-MM-dd")}.txt";
+            }
         }
 
         public void log(string logText, object objectData, string dirPath = null, string fileName = null, bool appendFile = true, bool requireTimeStamp = true, Formatting formatting = Formatting.None)
@@ -82,12 +100,17 @@ namespace HelperUtilities.IO
             }
             else
             {
-                folderName = Path.Combine(_dirPathInitial, folderName);
+                folderName = Path.Combine(_dirPathInitial, folderName.RemoveSpecialCharactersFromString());
             }
 
             if (string.IsNullOrEmpty(filenameWithExtension))
-            {
+            {                
                 filenameWithExtension = _defaultFileName;
+            }
+
+            if (!filenameWithExtension.Contains("."))
+            {
+                filenameWithExtension = filenameWithExtension + ".txt";
             }
 
             if (!Directory.Exists(folderName))
