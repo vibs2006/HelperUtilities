@@ -19,7 +19,7 @@ namespace HelperUtilities.IO
                 sb.AppendLine(ex.Source + " - " + ex.Message + $" ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")}) <br />");
                 sb.AppendLine(ex.StackTrace + " <br />");
                 ex = ex.InnerException;
-            } while (ex.InnerException != null);
+            } while (ex != null);
 
             return SendMail(fromAddr, toAddr, subject, $"{htmlBody}<br /> Exception from ZendeskUsersSync {DateTime.Now.ToString("yyyy MM dd")} {sb.ToString()}", smtpHost, smtpPort, userName, password, isSSL, UseDefaultCredentials);
         }

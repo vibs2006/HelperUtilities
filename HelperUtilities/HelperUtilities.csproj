@@ -52,6 +52,7 @@
     <Compile Include="Net\NetMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rest\RestHttpClient.cs" />
+    <Compile Include="Text\TextUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
