@@ -13,7 +13,7 @@ namespace HelperUtilities.Tests
         {
             string input = "A&*&7/sfsdfs!~//sdfsfsf";
             string output = string.Empty;
-            Trace.WriteLine($"The input is '{input}' and the output is '" + Text.StaticTextUtils.RemoveSpecialCharactersFromString(input) + "'");
+            Trace.WriteLine($"The input is '{input}' and the output is '" + HelperUtilities.Text.StaticTextUtils.RemoveSpecialCharactersFromString(input) + "'");
         }
         #endregion
     }
