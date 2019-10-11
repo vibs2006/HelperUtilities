@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Collections\CollectionMethods.cs" />
     <Compile Include="ConfigManager\ConfigMethods.cs" />
     <Compile Include="IO\EmailLogger.cs" />
     <Compile Include="IO\Writer.cs" />

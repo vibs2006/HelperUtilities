@@ -53,6 +53,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Text.cs" />
+    <Compile Include="Collections.cs" />
     <Compile Include="UnitTestsHelperUtlities.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
