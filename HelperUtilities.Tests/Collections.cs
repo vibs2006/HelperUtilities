@@ -10,34 +10,46 @@ namespace HelperUtilities.Tests
     public class Collections
     {
         Random random = new Random();
-        public class testObj
+       
+
+        [TestMethod]
+        public void TestGenericPagingList()
         {
-            public int Id { get; set; }
-            public string Name { get; set; }
+            List<testObj> objList = Common.GenerateSampleList(23);
+
+            Trace.WriteLine($"List Generation is Completed for sample {objList.Count} Records");
+            foreach (var item in objList)
+            {
+                Trace.WriteLine(item.Id + " - " + item.Name);
+            }
+
+            CollectionMethods.ProcessListViaPaging(objList, 10, (currentPageList) =>
+            {
+                Trace.WriteLine("\nNow Looping through currentPageList");
+                foreach (var item in currentPageList)
+                {
+                    Trace.WriteLine($"{item.Id} - {item.Name}");
+                }
+            });
+
+            //Alternative Method
+            //CollectionMethods.ProcessListViaPaging(objList, 10, processEachList );
+        }
+
+        private void processEachList(IList<testObj> currentPageList)
+        {
+            Trace.WriteLine("\nNow Looping through currentPageList");
+            foreach (var item in currentPageList)
+            {
+                Trace.WriteLine($"{item.Id} - {item.Name}");
+            }
         }
 
         [TestMethod]
         public void TestPagingList()
-        {            
-            List<testObj> objList = new List<testObj>();
+        {
+            List<testObj> objList = Common.GenerateSampleList(23);
 
-           
-            for (int i = 1; i <= 129; i++)
-            {
-                string s = string.Empty;
-                // random lowercase letter
-                for (int j = 1; j <= 10; j++)
-                {
-                    int a = random.Next(0, 26);
-                    char ch = (char)('a' + a);
-                    s = s + ch;
-                }
-                objList.Add(new testObj
-                {
-                    Id = i,
-                    Name = HelperUtilities.Text.StaticTextUtils.GenerateRandomWord()
-                });
-            }
             Trace.WriteLine("List Generation is Completed for sample 23 Records");
             foreach (var item in objList)
             {
