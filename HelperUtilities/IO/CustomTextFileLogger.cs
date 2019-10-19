@@ -20,12 +20,11 @@ namespace HelperUtilities.IO
         {
             if (_sbLog.Length == 0)
             {
-                _sbLog.AppendLine($"{_referenceId} - {DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")} - {logText}");
+                _sbLog.AppendLine($"{_referenceId} - {DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")}");
             }
-            else
-            {
-                _sbLog.AppendLine($"\t{logText} ({DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")})");
-            }
+
+            _sbLog.AppendLine($"\t{logText} ({DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")})");
+
 
             if (obj != null)
             {
@@ -52,7 +51,7 @@ namespace HelperUtilities.IO
         {
             if (_sbLog.Length > 0)
             {
-                CustomFileWriter.Log(_sbLog.ToString());               
+                CustomFileWriter.Log(_sbLog.ToString());
             }
         }
 

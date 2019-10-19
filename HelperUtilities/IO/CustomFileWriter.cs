@@ -56,10 +56,18 @@ namespace HelperUtilities.IO
         {
             lock (_syncObject)
             {
-                using (StreamWriter sw = new StreamWriter(_finalFilePathForLogMessages, true))
+                try
                 {
-                    sw.WriteLine(logText);
-                    if (obj != null) sw.WriteLine(JsonConvert.SerializeObject(obj));
+                    using (StreamWriter sw = new StreamWriter(_finalFilePathForLogMessages, true))
+                    {
+                        sw.WriteLine(logText);
+                        if (obj != null) sw.WriteLine(JsonConvert.SerializeObject(obj));
+                    }
+                }
+                catch (Exception Ex)
+                {
+                    Trace.TraceError(Ex.Message + Environment.NewLine + Ex.StackTrace);
+                    
                 }
             }
         }

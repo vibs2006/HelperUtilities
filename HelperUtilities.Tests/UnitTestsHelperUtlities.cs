@@ -26,10 +26,15 @@ namespace HelperUtilities.Tests
         {
             CustomFileWriter.DeleteAllRootFilesAndFolders();
 
-            // Random rd = new Random();
-            //Parallel.For(0, 10000, (index) => {               
-            //    CustomFileWriter.Log($"Test Message '{index}'", Guid.NewGuid().ToString());
-            //});      
+            Random rd = new Random();
+            Parallel.For(0, 1000, (index) =>
+            {
+                CustomTextFileLogger _wr = new CustomTextFileLogger();
+                _wr.AppendLog($"This is first line of log for '{index}'");
+                _wr.AppendLog($"This is second line of log for '{index}'");
+                //CustomFileWriter.Log($"Test Message '{index}'", Guid.NewGuid().ToString());
+                _wr.CommitLog();
+            });
 
         }
 
