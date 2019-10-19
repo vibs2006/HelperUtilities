@@ -7,6 +7,7 @@ using HelperUtilities.Text;
 
 namespace HelperUtilities.IO
 {
+    [Obsolete("This class is now being depreciated. Please use TextFileLogger for future purpose as its thread safe which is a must required in logging environment")]
     public class Writer
     {
         string _dirPathInitial; string filePath; string _defaultFileName;
