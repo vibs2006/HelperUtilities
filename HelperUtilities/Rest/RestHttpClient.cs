@@ -15,13 +15,13 @@ namespace HelperUtilities.Rest
         static HttpClient client;
         static HttpRequestMessage objHttpRequestMessage = null;
         static string jsonResult = string.Empty;
-        static Writer wr;
+        static Writer_old wr;
 
         public static void initialize()
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             client = new HttpClient();
-            wr = new Writer();
+            wr = new Writer_old();
         }
 
         public static string RemoveLineEndings(this string value)
@@ -89,7 +89,7 @@ namespace HelperUtilities.Rest
             {
                 client.Dispose();
                 client = new HttpClient();
-                new Writer().log(new Exception("JSONSerializationException occurred which means that returned JSON Object didn't matched with the output object type class. See error logs for more detail. Inner Exception Details now.",ex));
+                new Writer_old().log(new Exception("JSONSerializationException occurred which means that returned JSON Object didn't matched with the output object type class. See error logs for more detail. Inner Exception Details now.",ex));
                 object obj = null;
                 return (OutputObjectType)Convert.ChangeType(obj, typeof(OutputObjectType));
             }
@@ -99,7 +99,7 @@ namespace HelperUtilities.Rest
                 //sp.ConnectionLeaseTimeout = 60 * 1000; // 1 Minute
                 client.Dispose();
                 client = new HttpClient();
-                new Writer().log(ex);
+                new Writer_old().log(ex);
                 object obj = null;                
                 return (OutputObjectType)Convert.ChangeType(obj, typeof(OutputObjectType));
             }
@@ -152,7 +152,7 @@ namespace HelperUtilities.Rest
             {
                 client.Dispose();
                 client = new HttpClient();
-                new Writer().log(new Exception("JSONSerializationException occurred which means that returned JSON Object didn't matched with the output object type class. See error logs for more detail. Inner Exception Details now.", ex));
+                new Writer_old().log(new Exception("JSONSerializationException occurred which means that returned JSON Object didn't matched with the output object type class. See error logs for more detail. Inner Exception Details now.", ex));
                 object obj1 = null;
                 return (OutputObjectType)Convert.ChangeType(obj1, typeof(OutputObjectType));
             }

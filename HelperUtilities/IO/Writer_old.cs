@@ -8,7 +8,7 @@ using HelperUtilities.Text;
 namespace HelperUtilities.IO
 {
     [Obsolete("This class is now being depreciated. Please use TextFileLogger for future purpose as its thread safe which is a must required in logging environment")]
-    public class Writer
+    public class Writer_old
     {
         string _dirPathInitial; string filePath; string _defaultFileName;
         public string logDirectoryCompletePath { get; set; }
@@ -18,7 +18,7 @@ namespace HelperUtilities.IO
         /// </summary>
         /// <param name="baseAbsolulateDirectoryPath">Should be a complete (absolute) file path e.g like 'c:\\yourpath' etc</param>
         /// <param name="defaultFileNameWithExtension">Should be a file name with extension. If no file extension e.g 'yourfile.txt' is provided then .txt is appended in filename</param>
-        public Writer(string baseAbsolulateDirectoryPath = null, string defaultFileNameWithExtension = null)
+        public Writer_old(string baseAbsolulateDirectoryPath = null, string defaultFileNameWithExtension = null)
         {
             if (string.IsNullOrEmpty(baseAbsolulateDirectoryPath))
             {

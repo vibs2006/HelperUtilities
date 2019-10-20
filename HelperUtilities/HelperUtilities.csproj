@@ -47,10 +47,9 @@
   <ItemGroup>
     <Compile Include="Collections\CollectionMethods.cs" />
     <Compile Include="ConfigManager\ConfigMethods.cs" />
-    <Compile Include="IO\CustomTextFileLogger.cs" />
+    <Compile Include="IO\CustomLogger.cs" />
     <Compile Include="IO\EmailLogger.cs" />
-    <Compile Include="IO\CustomFileWriter.cs" />
-    <Compile Include="IO\Writer.cs" />
+    <Compile Include="IO\Writer_old.cs" />
     <Compile Include="Json\JsonUtilities.cs" />
     <Compile Include="Net\NetMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
