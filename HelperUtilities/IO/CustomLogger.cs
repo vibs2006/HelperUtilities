@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,11 +11,9 @@ using System.Threading.Tasks;
 namespace HelperUtilities.IO
 {
     public class CustomLogger
-    {
-        private static int count = 0;
-        private static readonly object _syncObject = new object();
-        private static readonly object _syncObjectError = new object();
-        private static string _baseDirectory;
+    {        
+        static readonly object _syncObject = new object();       
+        static string _baseDirectory;
 
 
         string _referenceId, _filePathForNormalLogs, _filePathForErrorLogs;
@@ -42,6 +41,13 @@ namespace HelperUtilities.IO
             {
                 return _filePathForErrorLogs;
             }
+        }
+
+        public string GenerateNewReferenceId()
+        {
+            CommitLog();
+            _referenceId = Guid.NewGuid().ToString();
+            return _referenceId;
         }
 
         static CustomLogger()
@@ -102,7 +108,12 @@ namespace HelperUtilities.IO
             _sbLog.AppendLine($"\t{logText} ({DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss.ffffff")})");
             if (obj != null)
             {
-                _sbLog.AppendLine(JsonConvert.SerializeObject(obj));
+                if (obj.GetType().IsClass)
+                _sbLog.AppendLine($"\t{JsonConvert.SerializeObject(obj)}");
+            }
+            else
+            {
+                _sbLog.AppendLine($"\t{obj.ToString()}");
             }
         }
 
@@ -110,6 +121,7 @@ namespace HelperUtilities.IO
         {
             if (_sbLog.Length > 0)
             {
+                _sbLog.AppendLine($"ReferenceId '{_referenceId}' commited (Auto)");
                 Log(_sbLog.ToString(), _filePathForNormalLogs);
                 _sbLog.Clear();
             }
@@ -171,8 +183,7 @@ namespace HelperUtilities.IO
         private static void Log(string logText, string absoluteFilePathWithExt)
         {
             lock (_syncObject)
-            {
-                count = count + 1;
+            {                
                 try
                 {
                     using (StreamWriter sw = new StreamWriter(absoluteFilePathWithExt, true))
@@ -188,7 +199,7 @@ namespace HelperUtilities.IO
         }
         private static string GetDateTimeAndReference(string referenceId)
         {
-            return DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")
+            return DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss",CultureInfo.InvariantCulture)
                 + (string.IsNullOrEmpty(referenceId) ? "" : $"({referenceId})");
         }
 
@@ -196,6 +207,7 @@ namespace HelperUtilities.IO
         {
             if (_sbLog.Length > 0)
             {
+                _sbLog.AppendLine($"ReferenceId '{_referenceId}' commited (Auto)");
                 Log(_sbLog.ToString(), _filePathForNormalLogs);
             }
         }
