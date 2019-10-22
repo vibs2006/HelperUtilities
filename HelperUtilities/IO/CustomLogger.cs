@@ -52,7 +52,7 @@ namespace HelperUtilities.IO
 
         static CustomLogger()
         {
-            _baseDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
+            _baseDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Log");
             if (!Directory.Exists(_baseDirectory))
             {
                 Directory.CreateDirectory(_baseDirectory);
