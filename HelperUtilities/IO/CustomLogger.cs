@@ -109,11 +109,13 @@ namespace HelperUtilities.IO
             if (obj != null)
             {
                 if (obj.GetType().IsClass)
-                _sbLog.AppendLine($"\t{JsonConvert.SerializeObject(obj)}");
-            }
-            else
-            {
-                _sbLog.AppendLine($"\t{obj.ToString()}");
+                {
+                    _sbLog.AppendLine($"\t{JsonConvert.SerializeObject(obj)}");
+                }
+                else
+                {
+                    _sbLog.AppendLine($"\t{obj.ToString()}");
+                }
             }
         }
 
