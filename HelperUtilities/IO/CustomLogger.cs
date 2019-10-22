@@ -117,11 +117,15 @@ namespace HelperUtilities.IO
             }
         }
 
-        public void CommitLog()
+        public void CommitLog(string lastMessageBeforeCommitIfAny=null)
         {
+            if (!string.IsNullOrWhiteSpace(lastMessageBeforeCommitIfAny))
+            {
+                _sbLog.AppendLine(lastMessageBeforeCommitIfAny);
+            }
             if (_sbLog.Length > 0)
             {
-                _sbLog.AppendLine($"ReferenceId '{_referenceId}' commited (Auto)");
+                _sbLog.AppendLine($"ReferenceId '{_referenceId}' commited (Manual)");
                 Log(_sbLog.ToString(), _filePathForNormalLogs);
                 _sbLog.Clear();
             }
