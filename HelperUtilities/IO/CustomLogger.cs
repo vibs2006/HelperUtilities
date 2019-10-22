@@ -123,7 +123,7 @@ namespace HelperUtilities.IO
         {
             if (!string.IsNullOrWhiteSpace(lastMessageBeforeCommitIfAny))
             {
-                _sbLog.AppendLine(lastMessageBeforeCommitIfAny);
+                _sbLog.AppendLine("\t"+lastMessageBeforeCommitIfAny);
             }
             if (_sbLog.Length > 0)
             {
