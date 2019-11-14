@@ -5,20 +5,26 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace HelperUtilities.IO
 {
     public class CustomLogger
-    {        
-        static readonly object _syncObject = new object();       
-        static string _baseDirectory;
+    {
+        private static readonly object _syncObject = new object();
+        private static readonly object _syncRandomFileWriteObject = new object();
+        private static readonly object _syncListCustomLoggerClass = new object();
+        private static string _baseDirectory;
+        private static IDictionary<string, CustomLogger> _listInstances;
 
+        private readonly string _referenceId;
+        private static readonly string _guidKeyName = "GuidValue";
+        private string _filePathForNormalLogs, _filePathForErrorLogs;
+        StringBuilder _sbLog = new StringBuilder("\n*****************************************************************************" + Environment.NewLine);
 
-        string _referenceId, _filePathForNormalLogs, _filePathForErrorLogs;
-        StringBuilder _sbLog;
-
+        #region Properties (Setters / Getters)
         public string ReferenceId
         {
             get
@@ -43,12 +49,14 @@ namespace HelperUtilities.IO
             }
         }
 
-        public string GenerateNewReferenceId()
+        public string GuidKeyName
         {
-            CommitLog();
-            _referenceId = Guid.NewGuid().ToString();
-            return _referenceId;
+            get
+            {
+                return _guidKeyName;
+            }
         }
+        #endregion
 
         static CustomLogger()
         {
@@ -57,14 +65,31 @@ namespace HelperUtilities.IO
             {
                 Directory.CreateDirectory(_baseDirectory);
             }
+            _listInstances = new Dictionary<string, CustomLogger>();
+
+            //Following method will delete any file older than 30 days (of .txt type)
+            DeleteFilesOlderMoreThanNdays(60);
         }
 
         public CustomLogger(string referenceId = null)
         {
-            _referenceId = string.IsNullOrWhiteSpace(referenceId) ? Guid.NewGuid().ToString() : referenceId;
-            _sbLog = new StringBuilder();
+            _referenceId = string.IsNullOrWhiteSpace(referenceId) ? Guid.NewGuid().ToString() : referenceId;            
             _filePathForNormalLogs = Path.Combine(_baseDirectory, DateTime.Now.ToString("yyyy-MM-dd") + "-logs.txt");
             _filePathForErrorLogs = Path.Combine(_baseDirectory, DateTime.Now.ToString("yyyy-MM-dd") + "-errors.txt");
+            AddReferenceToStaticLists();
+        }
+
+        public CustomLogger(HttpRequestMessage request, string referenceId = null)
+        {
+            _referenceId = string.IsNullOrWhiteSpace(referenceId) ? Guid.NewGuid().ToString() : referenceId;
+            if (request.Headers.Contains(_guidKeyName))
+            {
+                request.Headers.Remove(_guidKeyName);
+            }
+            request.Headers.Add(_guidKeyName, _referenceId);            
+            _filePathForNormalLogs = Path.Combine(_baseDirectory, DateTime.Now.ToString("yyyy-MM-dd") + "-logs.txt");
+            _filePathForErrorLogs = Path.Combine(_baseDirectory, DateTime.Now.ToString("yyyy-MM-dd") + "-errors.txt");
+            AddReferenceToStaticLists();
         }
 
         public CustomLogger(string baseDirectoryWithAbsolutePath, string fileNameWithExtensionForLog, string FileNameWithExtensionForErrors, string referenceId = null)
@@ -93,19 +118,41 @@ namespace HelperUtilities.IO
                 throw new Exception("Unable to Create Directory with the following path - " + baseDirectoryWithAbsolutePath, Ex);
             }
 
-            _referenceId = string.IsNullOrWhiteSpace(referenceId) ? Guid.NewGuid().ToString() : referenceId;
-            _sbLog = new StringBuilder();
+            _referenceId = string.IsNullOrWhiteSpace(referenceId) ? Guid.NewGuid().ToString() : referenceId;            
             _filePathForNormalLogs = Path.Combine(_baseDirectory, fileNameWithExtensionForLog);
             _filePathForErrorLogs = Path.Combine(_baseDirectory, FileNameWithExtensionForErrors);
+        }
+
+        private void AddReferenceToStaticLists()
+        {
+            if (_listInstances.ContainsKey(_referenceId) == false)
+            {
+                lock (_syncListCustomLoggerClass)
+                {
+                    _listInstances.Add(_referenceId, this);
+                }
+            }
+        }
+
+        private void DeleteReferenceToStaticLists()
+        {
+            if (_listInstances.ContainsKey(_referenceId) == true)
+            {
+                lock (_syncListCustomLoggerClass)
+                {
+                    _listInstances.Remove(_referenceId);
+                }
+            }
         }
 
         public void AppendLog(string logText, object obj = null)
         {
             if (_sbLog.Length == 0)
             {
-                _sbLog.AppendLine($"{_referenceId} - {DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss.ffffff")}");
+                AddReferenceToStaticLists();
+                _sbLog.AppendLine($"{_referenceId} - {DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss.ffffff", CultureInfo.InvariantCulture)}");
             }
-            _sbLog.AppendLine($"\t{logText} ({DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss.ffffff")})");
+            _sbLog.AppendLine($"\t{logText} ({DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss.ffffff", CultureInfo.InvariantCulture)})");
             if (obj != null)
             {
                 if (obj.GetType().IsClass)
@@ -119,17 +166,19 @@ namespace HelperUtilities.IO
             }
         }
 
-        public void CommitLog(string lastMessageBeforeCommitIfAny=null)
+        public void CommitLog(string lastMessageBeforeCommitIfAny = null)
         {
             if (!string.IsNullOrWhiteSpace(lastMessageBeforeCommitIfAny))
             {
-                _sbLog.AppendLine("\t"+lastMessageBeforeCommitIfAny);
+                _sbLog.AppendLine("\t" + lastMessageBeforeCommitIfAny);
             }
             if (_sbLog.Length > 0)
             {
                 _sbLog.AppendLine($"ReferenceId '{_referenceId}' commited (Manual)");
+                _sbLog.AppendLine("*****************************************************************************");
                 Log(_sbLog.ToString(), _filePathForNormalLogs);
                 _sbLog.Clear();
+                DeleteReferenceToStaticLists();
             }
         }
 
@@ -144,6 +193,39 @@ namespace HelperUtilities.IO
             } while (exception != null);
 
             Log(sb.ToString(), _filePathForErrorLogs);
+        }
+
+        #region Static Methods
+
+        public static CustomLogger GetLoggerInstance(HttpRequestMessage request)
+        {
+            string referenceId = string.Empty;
+            IEnumerable<string> str;
+            request.Headers.TryGetValues(_guidKeyName, out str);
+            referenceId = str.FirstOrDefault();
+            return GetLoggerInstance(referenceId);
+        }
+
+        public static CustomLogger GetLoggerInstance(string referenceId)
+        {
+            CustomLogger customLogger2;
+            lock (_syncListCustomLoggerClass)
+            {
+                _listInstances.TryGetValue(referenceId, out customLogger2);
+            }
+            return customLogger2;
+        }
+
+        public static void DeleteFilesOlderMoreThanNdays(int noOfDays, string absoluteFolderPath = null)
+        {
+            var endDate = DateTime.Now.AddDays(0 - Math.Abs(noOfDays));
+            var startDate = DateTime.Now.AddDays(-365); //1 year
+            if (string.IsNullOrWhiteSpace(absoluteFolderPath)) absoluteFolderPath = _baseDirectory;
+            var files = ListallFiles(absoluteFolderPath, startDate, endDate);
+            foreach (var file in files)
+            {
+                File.Delete(Path.Combine(absoluteFolderPath, file.Key));
+            }
         }
 
         public static bool DeleteAllRootFilesAndFolders(string absoluteFolderPath = null)
@@ -177,7 +259,7 @@ namespace HelperUtilities.IO
                 Trace.WriteLine(JsonConvert.SerializeObject(listFiles));
                 DateTime minDate = StartingDate.HasValue ? Convert.ToDateTime(StartingDate) : listFiles.Min(x => x.LastWriteTime);
                 DateTime maxDate = EndDate.HasValue ? Convert.ToDateTime(EndDate) : listFiles.Max(x => x.LastWriteTime);
-                var finalList = listFiles.Where(x => x.LastWriteTime >= minDate && x.LastWriteTime <= maxDate && x.Exists == true).OrderByDescending( x => x.LastWriteTime).ToList();
+                var finalList = listFiles.Where(x => x.LastWriteTime >= minDate && x.LastWriteTime <= maxDate && x.Exists == true).OrderByDescending(x => x.LastWriteTime).ToList();
                 foreach (var file in finalList)
                 {
                     _dict.Add(file.Name, file.LastWriteTime);
@@ -189,7 +271,7 @@ namespace HelperUtilities.IO
         private static void Log(string logText, string absoluteFilePathWithExt)
         {
             lock (_syncObject)
-            {                
+            {
                 try
                 {
                     using (StreamWriter sw = new StreamWriter(absoluteFilePathWithExt, true))
@@ -203,21 +285,48 @@ namespace HelperUtilities.IO
                 }
             }
         }
+
+        /// <summary>
+        /// Returns Absolute FileName with its Path so that File.Delete operation can be performed after with some post processing.
+        /// </summary>
+        /// <param name="message">Your Custom UTF-8 Encoded string (Recommended) string</param>
+        /// <param name="fileNameWithExtension">File Name should be WITHOUT absolute folder path as that will be added automatically in final path</param>
+        /// <returns></returns>
+        public static string LogAndReturnFileNameWithPath(string message, string fileNameWithExtension = null)
+        {
+            string completeFilePathWithExtension = string.Empty;
+            lock (_syncRandomFileWriteObject)
+            {
+                if (string.IsNullOrWhiteSpace(fileNameWithExtension))
+                {
+                    fileNameWithExtension = Guid.NewGuid().ToString();
+                }
+                completeFilePathWithExtension = Path.Combine(_baseDirectory, fileNameWithExtension);
+                using (StreamWriter sw = new StreamWriter(completeFilePathWithExtension, false, Encoding.UTF8))
+                {
+                    sw.Write(message);
+                }
+            }
+            return completeFilePathWithExtension;
+        }
+
         private static string GetDateTimeAndReference(string referenceId)
         {
-            return DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss",CultureInfo.InvariantCulture)
+            return DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture)
                 + (string.IsNullOrEmpty(referenceId) ? "" : $"({referenceId})");
         }
+        #endregion
 
         ~CustomLogger()
         {
             if (_sbLog.Length > 0)
             {
                 _sbLog.AppendLine($"ReferenceId '{_referenceId}' commited (Auto)");
+                _sbLog.AppendLine("*****************************************************************************");
                 Log(_sbLog.ToString(), _filePathForNormalLogs);
+                _sbLog.Clear();
+                DeleteReferenceToStaticLists();
             }
         }
-
-
     }
 }

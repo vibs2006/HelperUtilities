@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29509.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelperUtilities", "HelperUtilities\HelperUtilities.csproj", "{3961A5B8-74C9-4082-BB1D-3F69140F9130}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelperUtilities.Tests", "HelperUtilities.Tests\HelperUtilities.Tests.csproj", "{EF61255D-BBB6-41E2-86F2-FB62C7C020F9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XmlTests", "XmlTests\XmlTests.csproj", "{95C762A8-73FD-4B35-983F-F0904AA685C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApi2Demos", "WebApi2Demos\WebApi2Demos.csproj", "{E79D31FA-6133-4058-BDBA-2A6E43E1E94C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,8 +29,15 @@ Global
 		{95C762A8-73FD-4B35-983F-F0904AA685C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95C762A8-73FD-4B35-983F-F0904AA685C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95C762A8-73FD-4B35-983F-F0904AA685C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E79D31FA-6133-4058-BDBA-2A6E43E1E94C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E79D31FA-6133-4058-BDBA-2A6E43E1E94C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E79D31FA-6133-4058-BDBA-2A6E43E1E94C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E79D31FA-6133-4058-BDBA-2A6E43E1E94C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3FB32A4B-4044-4D9F-A656-4C5F35D681A3}
 	EndGlobalSection
 EndGlobal
