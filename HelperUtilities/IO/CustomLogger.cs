@@ -289,11 +289,13 @@ namespace HelperUtilities.IO
         /// <summary>
         /// Returns Absolute FileName with its Path so that File.Delete operation can be performed after with some post processing.
         /// </summary>
-        /// <param name="message">Your Custom UTF-8 Encoded string (Recommended) string</param>
+        /// <param name="message">Your Custom Encoded string (Default to UTF-8)</param>
         /// <param name="fileNameWithExtension">File Name should be WITHOUT absolute folder path as that will be added automatically in final path</param>
+        /// <param name="encoding">Defaults to UTF-8 Encoding</param>
         /// <returns></returns>
-        public static string LogAndReturnFileNameWithPath(string message, string fileNameWithExtension = null)
+        public static string LogAndReturnFileNameWithPath(string message, string fileNameWithExtension = null, Encoding encoding = null)
         {
+            encoding = encoding ?? Encoding.UTF8;
             string completeFilePathWithExtension = string.Empty;
             lock (_syncRandomFileWriteObject)
             {
@@ -302,7 +304,7 @@ namespace HelperUtilities.IO
                     fileNameWithExtension = Guid.NewGuid().ToString();
                 }
                 completeFilePathWithExtension = Path.Combine(_baseDirectory, fileNameWithExtension);
-                using (StreamWriter sw = new StreamWriter(completeFilePathWithExtension, false, Encoding.UTF8))
+                using (StreamWriter sw = new StreamWriter(completeFilePathWithExtension, false, encoding))
                 {
                     sw.Write(message);
                 }
