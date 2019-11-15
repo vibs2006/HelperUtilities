@@ -15,7 +15,7 @@ namespace WebApi2Demos
             // Web API routes
             config.MapHttpAttributeRoutes();
 
-            config.MessageHandlers.Add(new CustomRequestResponseHandler());
+            config.MessageHandlers.Add(new CustomRequestResponseHandler());         
 
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",

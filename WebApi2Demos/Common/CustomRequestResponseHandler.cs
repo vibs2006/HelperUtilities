@@ -1,6 +1,7 @@
 ﻿using HelperUtilities.IO;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -15,7 +16,7 @@ namespace WebApi2Demos.Common
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
-        {            
+        {
             var requestedMethod = request.Method;
             var userHostAddress = HttpContext.Current != null ?
                 HttpContext.Current.Request.UserHostAddress : "0:0:0:0";
@@ -54,7 +55,48 @@ namespace WebApi2Demos.Common
             logger.AppendLog(Environment.NewLine);
 
             var response = await base.SendAsync(request, cancellationToken);
-            response.Headers.Add("Access-Control-Allow-Origin", "*");
+
+            var strIsCorsEnabled = ConfigurationManager.AppSettings.Get("EnableCors");
+
+            if (strIsCorsEnabled != null)
+            {
+                bool IsCorsEnabled = Convert.ToBoolean(strIsCorsEnabled.Trim().ToLower());
+                if (IsCorsEnabled)
+                {
+                    response.Headers.TryGetValues("Access-Control-Allow-Origin", out IEnumerable<string> name);
+                    if (name == null || name.Count() == 0)
+                    {
+                        response.Headers.Add("Access-Control-Allow-Origin", "*");
+                    }
+                    else
+                    {
+                        response.Headers.Remove("Access-Control-Allow-Origin");
+                        response.Headers.Add("Access-Control-Allow-Origin", "*");
+                    }
+                }
+            }
+
+            var strIncludeGuidReferenceIdInResponse = ConfigurationManager.AppSettings.Get("IncludeGuidInResponseHeader");
+            if (strIncludeGuidReferenceIdInResponse != null)
+            {
+                bool IncludeGuidReferenceInResponse = Convert.ToBoolean(strIncludeGuidReferenceIdInResponse.Trim().ToLower());
+                if (IncludeGuidReferenceInResponse)
+                {
+                    response.Headers.Add(logger.GuidKeyName, logger.ReferenceId);
+                }
+            }
+
+            var responseHeadersString = new StringBuilder();
+            foreach (var header in response.Headers)
+            {
+                responseHeadersString.Append($"({header.Key}:");
+                foreach (var items in header.Value)
+                {
+                    responseHeadersString.Append($"[{items}]");
+                }
+                responseHeadersString.Append(") ");
+            }
+
 
             byte[] responseMessage;
 
@@ -77,10 +119,11 @@ namespace WebApi2Demos.Common
                 Useragent = userAgent,
                 RequestedMethod = requestedMethod.ToString(),
                 StatusCode = response.StatusCode.ToString(),
-                Guid = logger.ReferenceId
+                Guid = logger.ReferenceId,
+                Headers = responseHeadersString.ToString()
             };
 
-            logger.AppendLog("\nLogging Response Object", responseLog);
+            logger.AppendLog("Logging Response Object", responseLog);
             logger.CommitLog();
             return response;
         }
