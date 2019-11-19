@@ -29,6 +29,18 @@ namespace HelperUtilities.ConfigManager
             }
         }
 
+        public static string getAppSettingStringIfNotThenCreateDefault(string keyName, string defaultValue = null)
+        {
+            var configKey = ConfigurationManager.AppSettings.Get(keyName);
+
+            if (configKey == null)
+            {
+                AddOrModifyAppSettings(keyName, defaultValue == null || string.IsNullOrWhiteSpace(defaultValue) ? string.Empty : defaultValue);
+                return string.Empty;
+            }
+            return ConfigurationManager.AppSettings.Get(keyName).Trim();
+        }
+
         public static string generateConnectionKeyName(string brandName, string defaultConcatString = "connect")
         {
             brandName = brandName.Trim().ToLower();
