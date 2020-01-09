@@ -10,6 +10,12 @@ namespace HelperUtilities.Text
     public static class StaticTextUtils
     {
         static Random random = new Random();
+        
+        public static string GetNumbersFromString(string input)
+        {
+            return string.Join("", input.ToCharArray().Where(Char.IsDigit));
+        }
+        
         public static string RemoveSpecialCharactersFromString(this string input)
         {
             return Regex.Replace(input.Trim(), @"[^0-9a-zA-Z]+", string.Empty);
