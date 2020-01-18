@@ -11,6 +11,18 @@ namespace HelperUtilities.Text
     {
         static Random random = new Random();
         
+         public static string RemoveLineBreaks( this string lines )
+   {
+      return lines.Replace( "\r", "").Replace( "\n", "" );
+   }
+
+   public static string ReplaceLineBreaks( this string lines, string replacement )
+   {
+      return lines.Replace( "\r\n", replacement )
+                  .Replace( "\r", replacement )
+                  .Replace( "\n", replacement );
+   }
+        
         public static string GetNumbersFromString(string input)
         {
             return string.Join("", input.ToCharArray().Where(Char.IsDigit));
