@@ -72,5 +72,35 @@ namespace HelperUtilities.Text
 
             return s;
         }
+
+        public static string ConvertExceptionToString(Exception exception)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("Exception Encountered!" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            do
+            {
+                sb.AppendLine("\t" + exception.Source + " - " + exception.Message);
+                sb.AppendLine("\t" + exception.StackTrace);
+                exception = exception.InnerException;
+            } while (exception != null);
+
+            return sb.ToString();
+        }
+
+        public static string RemoveLineEndings(this string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+            string lineSeparator = ((char)0x2028).ToString();
+            string paragraphSeparator = ((char)0x2029).ToString();
+
+            return value.Replace("\r\n", string.Empty)
+                        .Replace("\n", string.Empty)
+                        .Replace("\r", string.Empty)
+                        .Replace(lineSeparator, string.Empty)
+                        .Replace(paragraphSeparator, string.Empty);
+        }
     }
 }

@@ -1,61 +1,77 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Configuration;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using HelperUtilities.IO;
-
+using HelperUtilities.Text;
 
 namespace HelperUtilities.Rest
 {
+    public enum MediaType { texthtml, json, csv }
+
     public static class RestHttpClient
     {
         static HttpClient client;
-        static HttpRequestMessage objHttpRequestMessage = null;
-        static string jsonResult = string.Empty;
-        static Writer_old wr;
 
-        public static void initialize()
+        public static void initialize(string url = null)
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            client = new HttpClient();
-            wr = new Writer_old();
-        }
-
-        public static string RemoveLineEndings(this string value)
-        {
-            if (String.IsNullOrEmpty(value))
-            {
-                return value;
-            }
-            string lineSeparator = ((char)0x2028).ToString();
-            string paragraphSeparator = ((char)0x2029).ToString();
-
-            return value.Replace("\r\n", string.Empty)
-                        .Replace("\n", string.Empty)
-                        .Replace("\r", string.Empty)
-                        .Replace(lineSeparator, string.Empty)
-                        .Replace(paragraphSeparator, string.Empty);
-        }
-
-        public static OutputObjectType HttpJsonGet<OutputObjectType>(string url, bool logRestCalls = true, bool logExceptionMails = false)
-        {
             if (client == null)
             {
-                initialize();
+                client = new HttpClient();
+            }
+
+            if (!string.IsNullOrWhiteSpace(url))
+            {
+                System.Threading.Thread.Sleep(1000);
+                ServicePointManager.FindServicePoint(new Uri(url)).ConnectionLeaseTimeout = (int)TimeSpan.FromMinutes(1).TotalMilliseconds;
+            }
+        }
+
+        public static void HandleException(Exception ex, StringBuilder sb, string url)
+        {
+            try
+            {
+                sb = sb ?? new StringBuilder();
+                initialize(url);
+                sb.AppendLine(StaticTextUtils.ConvertExceptionToString(ex));
+            }
+            finally {
+                System.Threading.Thread.Sleep(10000);
+            }        
+        }
+        
+
+        
+
+        public static string HttpGetRequest<OutputObjectType>(string url, out StringBuilder sb, out bool isHttpRequestSuccessful,
+            MediaType AcceptMediaType = MediaType.texthtml, string AuthorizationHeaderValue = null)
+        {            
+            sb = new StringBuilder();
+            isHttpRequestSuccessful = false;
+            string mediaQualityHeadervalue = GetMediaType(AcceptMediaType);
+            HttpRequestMessage objHttpRequestMessage = null;
+            if (client == null)
+            {
+                initialize(url);
                 var sp = ServicePointManager.FindServicePoint(new Uri(url));
                 sp.ConnectionLeaseTimeout = 60 * 1000; // 1 Minute
             }
 
-            string returnedJsonString = string.Empty;
-            objHttpRequestMessage = new HttpRequestMessage();
-            objHttpRequestMessage.Method = HttpMethod.Get;
-            objHttpRequestMessage.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-            objHttpRequestMessage.Headers.Add("Authorization", ConfigurationManager.AppSettings.Get("AuthorizationHeader"));
-            objHttpRequestMessage.RequestUri = new Uri(url);
-            if (logRestCalls) wr.log($"*********Request to url starts at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})", requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
+            objHttpRequestMessage = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get
+            };
+
+            objHttpRequestMessage.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue(mediaQualityHeadervalue));
+            if (!string.IsNullOrWhiteSpace(AuthorizationHeaderValue))
+            {
+                objHttpRequestMessage.Headers.Add("Authorization", AuthorizationHeaderValue);
+                sb.AppendLine("Authorization Header Found with value " + AuthorizationHeaderValue);
+            }
+            objHttpRequestMessage.RequestUri = new Uri(url.Trim());
+            sb.AppendLine($"*********Request to url starts at {url.Trim()} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})");
             HttpResponseMessage objHttpResponseMessage = null;
             try
             {
@@ -63,14 +79,70 @@ namespace HelperUtilities.Rest
                     = client.SendAsync(objHttpRequestMessage, HttpCompletionOption.ResponseContentRead);
 
                 objHttpResponseMessage = taskHttpResponsePost.Result;
-                returnedJsonString = objHttpResponseMessage.Content.ReadAsStringAsync().Result;
-                jsonResult = returnedJsonString;
+                string returnedJsonString = objHttpResponseMessage.Content.ReadAsStringAsync().Result;
+                isHttpRequestSuccessful = objHttpResponseMessage.IsSuccessStatusCode;
+                returnedJsonString = string.IsNullOrWhiteSpace(returnedJsonString) ? "" : returnedJsonString.RemoveLineEndings();
+                sb.AppendLine($"Returned data is: \'{ returnedJsonString}\'");
+                sb.AppendLine($"*********Request to url ends at {url.Trim()} at ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})");
 
-                if (logRestCalls)
+                JsonSerializerSettings set = new JsonSerializerSettings
                 {
-                    wr.log(returnedJsonString, requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
-                    wr.log($"*********Request to url ends at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})", requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
+                    TypeNameHandling = TypeNameHandling.Auto,
+                    Formatting = Formatting.None
+                };
+
+                if (string.IsNullOrWhiteSpace(returnedJsonString))
+                {
+                    return string.Empty;
                 }
+
+                return returnedJsonString;
+            }
+            catch (Exception ex)
+            {
+                HandleException(ex, sb, url);
+                return string.Empty;
+            }            
+        }
+
+        public static OutputObjectType HttpGetRequestWithJsonReturnData<OutputObjectType>(string url, out StringBuilder sb, out bool isHttpRequestSuccessful,
+            MediaType AcceptMediaType = MediaType.json, string AuthorizationHeaderValue = null)
+        {
+            sb = new StringBuilder();
+            isHttpRequestSuccessful = false;
+            string mediaQualityHeadervalue = GetMediaType(AcceptMediaType);
+            HttpRequestMessage objHttpRequestMessage = null;
+            if (client == null)
+            {
+                initialize();
+                var sp = ServicePointManager.FindServicePoint(new Uri(url));
+                sp.ConnectionLeaseTimeout = 60 * 1000; // 1 Minute
+            }
+
+            objHttpRequestMessage = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get
+            };
+            objHttpRequestMessage.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue(mediaQualityHeadervalue));
+            if (!string.IsNullOrWhiteSpace(AuthorizationHeaderValue))
+            {
+                objHttpRequestMessage.Headers.Add("Authorization", AuthorizationHeaderValue);
+                sb.AppendLine("Authorization Header Found with value " + AuthorizationHeaderValue);
+            }
+            objHttpRequestMessage.RequestUri = new Uri(url.Trim());
+            sb.AppendLine($"*********Request to url starts at {url.Trim()} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})");
+            HttpResponseMessage objHttpResponseMessage = null;
+            try
+            {
+                Task<HttpResponseMessage> taskHttpResponsePost
+                    = client.SendAsync(objHttpRequestMessage, HttpCompletionOption.ResponseContentRead);
+
+                objHttpResponseMessage = taskHttpResponsePost.Result;
+                string returnedJsonString = objHttpResponseMessage.Content.ReadAsStringAsync().Result;
+                isHttpRequestSuccessful = objHttpResponseMessage.IsSuccessStatusCode;
+                returnedJsonString = string.IsNullOrWhiteSpace(returnedJsonString) ? "" : returnedJsonString.RemoveLineEndings();
+                sb.AppendLine($"Returned JSON string is: \'{ returnedJsonString}\'");
+                sb.AppendLine($"*********Request to url ends at {url.Trim()} at ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})");
 
                 JsonSerializerSettings set = new JsonSerializerSettings
                 {
@@ -83,32 +155,53 @@ namespace HelperUtilities.Rest
                     return default;
                 }
 
-                return JsonConvert.DeserializeObject<OutputObjectType>(returnedJsonString.RemoveLineEndings(), set);
-            }
-            catch (JsonSerializationException ex)
-            {
-                client.Dispose();
-                initialize();
-                new Writer_old().log(new Exception("JSONSerializationException occurred which means that returned JSON Object didn't matched with the output object type class. See error logs for more detail. Inner Exception Details now.", ex));
-                object obj = null;
-                //return (OutputObjectType)Convert.ChangeType(obj, typeof(OutputObjectType));
-                return default;
+                if (AcceptMediaType == MediaType.json)
+                {
+                    return JsonConvert.DeserializeObject<OutputObjectType>(returnedJsonString, set);
+                }
+                else
+                {
+                    return default;
+                }
             }
             catch (Exception ex)
             {
-                new Writer_old().log(ex);
-                client.Dispose();
-                initialize();
-                var sp = ServicePointManager.FindServicePoint(new Uri(url));
-                sp.ConnectionLeaseTimeout = 60 * 1000; // 1 Minute
-                object obj = null;
-                //return (OutputObjectType)Convert.ChangeType(obj, typeof(OutputObjectType));
+                HandleException(ex, sb, url);
                 return default;
             }
         }
 
-        public static OutputObjectType HttpJsonPost<InputObjectType, OutputObjectType>(string url, InputObjectType obj, bool logExceptionMails = false)
+        private static string GetMediaType(MediaType mediaType)
         {
+            string mediaQualityHeadervalue = string.Empty;
+            switch (mediaType)
+            {
+                case MediaType.texthtml:
+                    mediaQualityHeadervalue = "text/html";
+                    break;
+                case MediaType.json:
+                    mediaQualityHeadervalue = "application/json";
+                    break;
+
+                case MediaType.csv:
+                    mediaQualityHeadervalue = "text/csv";
+                    break;
+
+                default:
+                    break;
+            }
+            return mediaQualityHeadervalue;
+        }
+
+        public static OutputObjectType HttpJsonPost<InputObjectType, OutputObjectType>(string url, InputObjectType obj, out StringBuilder sb, out bool IsHttpRequestSuccessful,
+            MediaType mediaTypeEnum = MediaType.json, string AuthorizationHeaderValue = null, Encoding encoding = null)
+        {
+            sb = new StringBuilder();
+            IsHttpRequestSuccessful = false;
+            HttpRequestMessage objHttpRequestMessage = null;
+            encoding = encoding ?? Encoding.UTF8;
+            string mediaQualityHeadervalue = GetMediaType(mediaTypeEnum);
+
             if (client == null)
             {
                 initialize();
@@ -119,22 +212,33 @@ namespace HelperUtilities.Rest
             string returnedJsonString = string.Empty;
             objHttpRequestMessage = new HttpRequestMessage();
             objHttpRequestMessage.Method = HttpMethod.Post;
-            objHttpRequestMessage.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-            objHttpRequestMessage.Headers.Add("Authorization", ConfigurationManager.AppSettings.Get("AuthorizationHeader"));
+            objHttpRequestMessage.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue(mediaQualityHeadervalue));
+            if (!string.IsNullOrWhiteSpace(AuthorizationHeaderValue))
+            {
+                objHttpRequestMessage.Headers.Add("Authorization", AuthorizationHeaderValue);
+            }
             objHttpRequestMessage.RequestUri = new Uri(url);
-            var stringContent = JsonConvert.SerializeObject(obj);
-            objHttpRequestMessage.Content = new StringContent(stringContent, Encoding.UTF8, "application/json");
-            wr.log($"*********Request to url starts at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})", requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
-            wr.log(stringContent + Environment.NewLine, requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
+            string stringContent = string.Empty;
+                
+            if (obj != null && obj.GetType().IsClass)
+            {
+                JsonConvert.SerializeObject(obj);
+            }
+            objHttpRequestMessage.Content = new StringContent(stringContent, encoding, mediaQualityHeadervalue);
+            sb.AppendLine($"*********Request to url starts at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})");
+            sb.AppendLine("Content Generated for HTTP Post Request is given below:");
+            sb.AppendLine(stringContent);
+            sb.AppendLine("Content For HTTP Post Ends now");
+
             HttpResponseMessage objHttpResponseMessage = null;
             try
             {
+                sb.AppendLine("Request Initiates");
                 Task<HttpResponseMessage> taskHttpResponsePost
                     = client.SendAsync(objHttpRequestMessage, HttpCompletionOption.ResponseContentRead);
 
                 objHttpResponseMessage = taskHttpResponsePost.Result;
-                returnedJsonString = objHttpResponseMessage.Content.ReadAsStringAsync().Result;
-                jsonResult = returnedJsonString;
+                returnedJsonString = objHttpResponseMessage.Content.ReadAsStringAsync().Result;               
 
                 JsonSerializerSettings set = new JsonSerializerSettings
                 {
@@ -142,33 +246,17 @@ namespace HelperUtilities.Rest
                     Formatting = Formatting.None
                 };
 
-                //if (url.Contains("3"))  //Similating Exception to Test Results
-                //{
-                //    throw new Exception("Test Exception");
-                //}
-                wr.log(returnedJsonString, requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
-                wr.log($"*********Request to url ends at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})", requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
+                returnedJsonString = returnedJsonString != null ? returnedJsonString.RemoveLineEndings() : string.Empty;
+
+                sb.AppendLine("Returned JSON String is given below:");
+                sb.AppendLine(returnedJsonString);
+                sb.AppendLine($"*********Request to url ends at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})");
                 if (string.IsNullOrWhiteSpace(returnedJsonString)) return default;
-                return JsonConvert.DeserializeObject<OutputObjectType>(returnedJsonString.RemoveLineEndings(), set);
-            }
-            catch (JsonSerializationException ex)
-            {
-                client.Dispose();
-                client = new HttpClient();
-                new Writer_old().log(new Exception("JSONSerializationException occurred which means that returned JSON Object didn't matched with the output object type class. See error logs for more detail. Inner Exception Details now.", ex));
-                object obj1 = null;
-                //return (OutputObjectType)Convert.ChangeType(obj1, typeof(OutputObjectType));
-                return default;
+                return JsonConvert.DeserializeObject<OutputObjectType>(returnedJsonString,set);
             }
             catch (Exception ex)
             {
-                wr.log(ex);
-                var sp = ServicePointManager.FindServicePoint(new Uri(url));
-                sp.ConnectionLeaseTimeout = 60 * 1000; // 1 Minute
-                client.Dispose();
-                initialize();
-                object obj1 = null;
-                //return (OutputObjectType)Convert.ChangeType(obj1, typeof(OutputObjectType));
+                HandleException(ex, sb, url);
                 return default;
             }
         }
