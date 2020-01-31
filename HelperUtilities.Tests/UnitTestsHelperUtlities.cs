@@ -90,7 +90,9 @@ namespace HelperUtilities.Tests
         [TestMethod]
         public void TestListFiles()
         {
-            foreach(var key in CustomLogger.ListallFiles())
+            var obj = CustomLogger.ListallFiles();
+
+            foreach (var key in obj)
             {
                 Trace.WriteLine($"{key.Key} - {key.Value.ToString("dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture)}");
             }

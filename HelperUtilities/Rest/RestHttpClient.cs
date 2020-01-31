@@ -40,14 +40,14 @@ namespace HelperUtilities.Rest
                         .Replace(paragraphSeparator, string.Empty);
         }
 
-        public static OutputObjectType HttpJsonGet<OutputObjectType>(string url,bool logRestCalls = true, bool logExceptionMails = false)
+        public static OutputObjectType HttpJsonGet<OutputObjectType>(string url, bool logRestCalls = true, bool logExceptionMails = false)
         {
             if (client == null)
             {
                 initialize();
-                //var sp = ServicePointManager.FindServicePoint(new Uri(url));
-                //sp.ConnectionLeaseTimeout = 60 * 1000; // 1 Minute
-            }            
+                var sp = ServicePointManager.FindServicePoint(new Uri(url));
+                sp.ConnectionLeaseTimeout = 60 * 1000; // 1 Minute
+            }
 
             string returnedJsonString = string.Empty;
             objHttpRequestMessage = new HttpRequestMessage();
@@ -78,34 +78,36 @@ namespace HelperUtilities.Rest
                     Formatting = Formatting.None
                 };
 
-                //if (url.Contains("3"))  //Similating Exception to Test Results
-                //{
-                //    throw new Exception("Test Exception");
-                //}
+                if (string.IsNullOrWhiteSpace(returnedJsonString))
+                {
+                    return default;
+                }
 
                 return JsonConvert.DeserializeObject<OutputObjectType>(returnedJsonString.RemoveLineEndings(), set);
             }
             catch (JsonSerializationException ex)
             {
                 client.Dispose();
-                client = new HttpClient();
-                new Writer_old().log(new Exception("JSONSerializationException occurred which means that returned JSON Object didn't matched with the output object type class. See error logs for more detail. Inner Exception Details now.",ex));
+                initialize();
+                new Writer_old().log(new Exception("JSONSerializationException occurred which means that returned JSON Object didn't matched with the output object type class. See error logs for more detail. Inner Exception Details now.", ex));
                 object obj = null;
-                return (OutputObjectType)Convert.ChangeType(obj, typeof(OutputObjectType));
+                //return (OutputObjectType)Convert.ChangeType(obj, typeof(OutputObjectType));
+                return default;
             }
             catch (Exception ex)
             {
-                //var sp = ServicePointManager.FindServicePoint(new Uri(url));
-                //sp.ConnectionLeaseTimeout = 60 * 1000; // 1 Minute
-                client.Dispose();
-                client = new HttpClient();
                 new Writer_old().log(ex);
-                object obj = null;                
-                return (OutputObjectType)Convert.ChangeType(obj, typeof(OutputObjectType));
+                client.Dispose();
+                initialize();
+                var sp = ServicePointManager.FindServicePoint(new Uri(url));
+                sp.ConnectionLeaseTimeout = 60 * 1000; // 1 Minute
+                object obj = null;
+                //return (OutputObjectType)Convert.ChangeType(obj, typeof(OutputObjectType));
+                return default;
             }
         }
 
-        public static OutputObjectType HttpJsonPost<InputObjectType,OutputObjectType>(string url, InputObjectType obj, bool logExceptionMails = false)
+        public static OutputObjectType HttpJsonPost<InputObjectType, OutputObjectType>(string url, InputObjectType obj, bool logExceptionMails = false)
         {
             if (client == null)
             {
@@ -121,9 +123,9 @@ namespace HelperUtilities.Rest
             objHttpRequestMessage.Headers.Add("Authorization", ConfigurationManager.AppSettings.Get("AuthorizationHeader"));
             objHttpRequestMessage.RequestUri = new Uri(url);
             var stringContent = JsonConvert.SerializeObject(obj);
-            objHttpRequestMessage.Content = new StringContent(stringContent,Encoding.UTF8,"application/json");
-            wr.log($"*********Request to url starts at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})",requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
-            wr.log(stringContent + Environment.NewLine, requireTimeStamp:false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
+            objHttpRequestMessage.Content = new StringContent(stringContent, Encoding.UTF8, "application/json");
+            wr.log($"*********Request to url starts at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})", requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
+            wr.log(stringContent + Environment.NewLine, requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
             HttpResponseMessage objHttpResponseMessage = null;
             try
             {
@@ -144,8 +146,9 @@ namespace HelperUtilities.Rest
                 //{
                 //    throw new Exception("Test Exception");
                 //}
-                wr.log(returnedJsonString, requireTimeStamp:false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
+                wr.log(returnedJsonString, requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
                 wr.log($"*********Request to url ends at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})", requireTimeStamp: false, filenameWithExtension: $"RestAccessLog{DateTime.Now.ToString("yyyyMMdd")}.txt");
+                if (string.IsNullOrWhiteSpace(returnedJsonString)) return default;
                 return JsonConvert.DeserializeObject<OutputObjectType>(returnedJsonString.RemoveLineEndings(), set);
             }
             catch (JsonSerializationException ex)
@@ -154,17 +157,19 @@ namespace HelperUtilities.Rest
                 client = new HttpClient();
                 new Writer_old().log(new Exception("JSONSerializationException occurred which means that returned JSON Object didn't matched with the output object type class. See error logs for more detail. Inner Exception Details now.", ex));
                 object obj1 = null;
-                return (OutputObjectType)Convert.ChangeType(obj1, typeof(OutputObjectType));
+                //return (OutputObjectType)Convert.ChangeType(obj1, typeof(OutputObjectType));
+                return default;
             }
             catch (Exception ex)
             {
+                wr.log(ex);
                 var sp = ServicePointManager.FindServicePoint(new Uri(url));
                 sp.ConnectionLeaseTimeout = 60 * 1000; // 1 Minute
                 client.Dispose();
-                client = new HttpClient();
-                wr.log(ex);
-                object obj1 = null;                
-                return (OutputObjectType)Convert.ChangeType(obj1, typeof(OutputObjectType));
+                initialize();
+                object obj1 = null;
+                //return (OutputObjectType)Convert.ChangeType(obj1, typeof(OutputObjectType));
+                return default;
             }
         }
     }

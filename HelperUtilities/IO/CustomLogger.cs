@@ -314,13 +314,19 @@ namespace HelperUtilities.IO
             {
                 DirectoryInfo dirInfo = new DirectoryInfo(absoluteFolderPath);
                 var listFiles = dirInfo.GetFiles().ToList();
-                Trace.WriteLine(JsonConvert.SerializeObject(listFiles));
-                DateTime minDate = StartingDate.HasValue ? Convert.ToDateTime(StartingDate) : listFiles.Min(x => x.LastWriteTime);
-                DateTime maxDate = EndDate.HasValue ? Convert.ToDateTime(EndDate) : listFiles.Max(x => x.LastWriteTime);
-                var finalList = listFiles.Where(x => x.LastWriteTime >= minDate && x.LastWriteTime <= maxDate && x.Exists == true).OrderByDescending(x => x.LastWriteTime).ToList();
-                foreach (var file in finalList)
+                if (listFiles != null && listFiles.Count > 0)
                 {
-                    _dict.Add(file.Name, file.LastWriteTime);
+                    if (listFiles.GetType().IsClass)
+                    {
+                        Trace.WriteLine(JsonConvert.SerializeObject(listFiles));
+                    }
+                    DateTime minDate = StartingDate.HasValue ? Convert.ToDateTime(StartingDate) : listFiles.Min(x => x.LastWriteTime);
+                    DateTime maxDate = EndDate.HasValue ? Convert.ToDateTime(EndDate) : listFiles.Max(x => x.LastWriteTime);
+                    var finalList = listFiles.Where(x => x.LastWriteTime >= minDate && x.LastWriteTime <= maxDate && x.Exists == true).OrderByDescending(x => x.LastWriteTime).ToList();
+                    foreach (var file in finalList)
+                    {
+                        _dict.Add(file.Name, file.LastWriteTime);
+                    } 
                 }
             }
             return _dict;
@@ -353,7 +359,7 @@ namespace HelperUtilities.IO
         /// <param name="encoding">By Default Supports UTF-8 for maximum compatiblity</param>
         /// <param name="baseDirectory">By Default selects the root application folder.If provided then it should be an absolute url if provided e.g `c:\\yourfolder\\yourfoldersub` etc</param>
         /// <returns></returns>
-        public static string LogAndReturnFileNameWithPath(string fileTextContent, string folderName = null,  string fileNameWithoutExtension = null, FileExtension fileExtension, Encoding encoding = null, string baseDirectory = null)
+        public static string LogAndReturnFileNameWithPath(string fileTextContent, string folderName = null,  string fileNameWithoutExtension = null, FileExtension fileExtension = FileExtension.txt, Encoding encoding = null, string baseDirectory = null)
         {
             if (string.IsNullOrWhiteSpace(baseDirectory))
             {
