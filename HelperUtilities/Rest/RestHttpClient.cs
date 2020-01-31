@@ -37,26 +37,46 @@ namespace HelperUtilities.Rest
                 initialize(url);
                 sb.AppendLine(StaticTextUtils.ConvertExceptionToString(ex));
             }
-            finally {
+            finally
+            {
                 System.Threading.Thread.Sleep(10000);
-            }        
+            }
         }
-        
 
-        
+        private static string GetMediaType(MediaType mediaType)
+        {
+            string mediaQualityHeadervalue = string.Empty;
+            switch (mediaType)
+            {
+                case MediaType.texthtml:
+                    mediaQualityHeadervalue = "text/html";
+                    break;
+                case MediaType.json:
+                    mediaQualityHeadervalue = "application/json";
+                    break;
+
+                case MediaType.csv:
+                    mediaQualityHeadervalue = "text/csv";
+                    break;
+
+                default:
+                    break;
+            }
+            return mediaQualityHeadervalue;
+        }
+
 
         public static string HttpGetRequest<OutputObjectType>(string url, out StringBuilder sb, out bool isHttpRequestSuccessful,
             MediaType AcceptMediaType = MediaType.texthtml, string AuthorizationHeaderValue = null)
-        {            
+        {
             sb = new StringBuilder();
             isHttpRequestSuccessful = false;
             string mediaQualityHeadervalue = GetMediaType(AcceptMediaType);
             HttpRequestMessage objHttpRequestMessage = null;
+
             if (client == null)
             {
                 initialize(url);
-                var sp = ServicePointManager.FindServicePoint(new Uri(url));
-                sp.ConnectionLeaseTimeout = 60 * 1000; // 1 Minute
             }
 
             objHttpRequestMessage = new HttpRequestMessage
@@ -102,7 +122,7 @@ namespace HelperUtilities.Rest
             {
                 HandleException(ex, sb, url);
                 return string.Empty;
-            }            
+            }
         }
 
         public static OutputObjectType HttpGetRequestWithJsonReturnData<OutputObjectType>(string url, out StringBuilder sb, out bool isHttpRequestSuccessful,
@@ -114,9 +134,12 @@ namespace HelperUtilities.Rest
             HttpRequestMessage objHttpRequestMessage = null;
             if (client == null)
             {
-                initialize();
-                var sp = ServicePointManager.FindServicePoint(new Uri(url));
-                sp.ConnectionLeaseTimeout = 60 * 1000; // 1 Minute
+                initialize(url);
+            }
+
+            if (AcceptMediaType != MediaType.json)
+            {
+                return default;
             }
 
             objHttpRequestMessage = new HttpRequestMessage
@@ -154,15 +177,7 @@ namespace HelperUtilities.Rest
                 {
                     return default;
                 }
-
-                if (AcceptMediaType == MediaType.json)
-                {
-                    return JsonConvert.DeserializeObject<OutputObjectType>(returnedJsonString, set);
-                }
-                else
-                {
-                    return default;
-                }
+                return JsonConvert.DeserializeObject<OutputObjectType>(returnedJsonString, set);
             }
             catch (Exception ex)
             {
@@ -171,29 +186,7 @@ namespace HelperUtilities.Rest
             }
         }
 
-        private static string GetMediaType(MediaType mediaType)
-        {
-            string mediaQualityHeadervalue = string.Empty;
-            switch (mediaType)
-            {
-                case MediaType.texthtml:
-                    mediaQualityHeadervalue = "text/html";
-                    break;
-                case MediaType.json:
-                    mediaQualityHeadervalue = "application/json";
-                    break;
-
-                case MediaType.csv:
-                    mediaQualityHeadervalue = "text/csv";
-                    break;
-
-                default:
-                    break;
-            }
-            return mediaQualityHeadervalue;
-        }
-
-        public static OutputObjectType HttpJsonPost<InputObjectType, OutputObjectType>(string url, InputObjectType obj, out StringBuilder sb, out bool IsHttpRequestSuccessful,
+        public static OutputObjectType HttpJsonPost<InputObjectType, OutputObjectType>(string url, InputObjectType inputJsonObject, out StringBuilder sb, out bool IsHttpRequestSuccessful,
             MediaType mediaTypeEnum = MediaType.json, string AuthorizationHeaderValue = null, Encoding encoding = null)
         {
             sb = new StringBuilder();
@@ -204,9 +197,12 @@ namespace HelperUtilities.Rest
 
             if (client == null)
             {
-                initialize();
-                var sp = ServicePointManager.FindServicePoint(new Uri(url));
-                sp.ConnectionLeaseTimeout = 60 * 1000; // 1 Minute
+                initialize(url);             
+            }
+
+            if (mediaTypeEnum != MediaType.json)
+            {
+                return default;
             }
 
             string returnedJsonString = string.Empty;
@@ -219,10 +215,10 @@ namespace HelperUtilities.Rest
             }
             objHttpRequestMessage.RequestUri = new Uri(url);
             string stringContent = string.Empty;
-                
-            if (obj != null && obj.GetType().IsClass)
+
+            if (inputJsonObject != null && inputJsonObject.GetType().IsClass)
             {
-                JsonConvert.SerializeObject(obj);
+                stringContent = JsonConvert.SerializeObject(inputJsonObject);
             }
             objHttpRequestMessage.Content = new StringContent(stringContent, encoding, mediaQualityHeadervalue);
             sb.AppendLine($"*********Request to url starts at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})");
@@ -238,7 +234,7 @@ namespace HelperUtilities.Rest
                     = client.SendAsync(objHttpRequestMessage, HttpCompletionOption.ResponseContentRead);
 
                 objHttpResponseMessage = taskHttpResponsePost.Result;
-                returnedJsonString = objHttpResponseMessage.Content.ReadAsStringAsync().Result;               
+                returnedJsonString = objHttpResponseMessage.Content.ReadAsStringAsync().Result;
 
                 JsonSerializerSettings set = new JsonSerializerSettings
                 {
@@ -252,7 +248,7 @@ namespace HelperUtilities.Rest
                 sb.AppendLine(returnedJsonString);
                 sb.AppendLine($"*********Request to url ends at {url} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})");
                 if (string.IsNullOrWhiteSpace(returnedJsonString)) return default;
-                return JsonConvert.DeserializeObject<OutputObjectType>(returnedJsonString,set);
+                return JsonConvert.DeserializeObject<OutputObjectType>(returnedJsonString, set);
             }
             catch (Exception ex)
             {
