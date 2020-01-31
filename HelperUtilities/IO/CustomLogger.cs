@@ -11,18 +11,25 @@ using System.Threading.Tasks;
 
 namespace HelperUtilities.IO
 {
+    public enum FileExtension
+    {
+        txt, log, csv, json, none
+    }
+
     public class CustomLogger
     {
         private static readonly object _syncObject = new object();
         private static readonly object _syncRandomFileWriteObject = new object();
         private static readonly object _syncListCustomLoggerClass = new object();
         private static string _baseDirectory;
+        private static string _defaultFolderName = "log";
         private static IDictionary<string, CustomLogger> _listInstances;
 
         private readonly string _referenceId;
         private static readonly string _guidKeyName = "GuidValue";
         private string _filePathForNormalLogs, _filePathForErrorLogs;
         StringBuilder _sbLog = new StringBuilder("\n*****************************************************************************" + Environment.NewLine);
+
 
         #region Properties (Setters / Getters)
         public string ReferenceId
@@ -60,7 +67,7 @@ namespace HelperUtilities.IO
 
         static CustomLogger()
         {
-            _baseDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Log");
+            _baseDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _defaultFolderName);
             if (!Directory.Exists(_baseDirectory))
             {
                 Directory.CreateDirectory(_baseDirectory);
@@ -71,15 +78,38 @@ namespace HelperUtilities.IO
             DeleteFilesOlderMoreThanNdays(60);
         }
 
-        public CustomLogger(string referenceId = null)
+        public static string GetDefaultFileExtension(string fileName, FileExtension extension = FileExtension.txt)
+        {
+            if (string.IsNullOrWhiteSpace(fileName)) return string.Empty;
+
+            fileName = fileName.Trim().Trim('.');
+
+            if (extension == FileExtension.none)
+            {
+                if (fileName.Contains('.'))
+                {
+                    return fileName;
+                }
+                else
+                {
+                    return string.Concat(fileName, "." + extension.ToString());
+                }
+            }
+            else
+            {                
+                return string.Concat(fileName.Replace(".",""), ".", extension.ToString());
+            }
+        }
+
+        public CustomLogger(string referenceId = null, FileExtension extension = FileExtension.txt)
         {
             _referenceId = string.IsNullOrWhiteSpace(referenceId) ? Guid.NewGuid().ToString() : referenceId;            
-            _filePathForNormalLogs = Path.Combine(_baseDirectory, DateTime.Now.ToString("yyyy-MM-dd") + "-logs.txt");
-            _filePathForErrorLogs = Path.Combine(_baseDirectory, DateTime.Now.ToString("yyyy-MM-dd") + "-errors.txt");
+            _filePathForNormalLogs = Path.Combine(_baseDirectory, GetDefaultFileExtension(DateTime.Now.ToString("yyyy-MM-dd") + "-logs", extension));
+            _filePathForErrorLogs = Path.Combine(_baseDirectory, GetDefaultFileExtension(DateTime.Now.ToString("yyyy-MM-dd") + "-errors" , extension));
             AddReferenceToStaticLists();
         }
 
-        public CustomLogger(HttpRequestMessage request, string referenceId = null)
+        public CustomLogger(HttpRequestMessage request, string referenceId = null, FileExtension extension = FileExtension.txt)
         {
             _referenceId = string.IsNullOrWhiteSpace(referenceId) ? Guid.NewGuid().ToString() : referenceId;
             if (request.Headers.Contains(_guidKeyName))
@@ -87,40 +117,69 @@ namespace HelperUtilities.IO
                 request.Headers.Remove(_guidKeyName);
             }
             request.Headers.Add(_guidKeyName, _referenceId);            
-            _filePathForNormalLogs = Path.Combine(_baseDirectory, DateTime.Now.ToString("yyyy-MM-dd") + "-logs.txt");
-            _filePathForErrorLogs = Path.Combine(_baseDirectory, DateTime.Now.ToString("yyyy-MM-dd") + "-errors.txt");
+            _filePathForNormalLogs = Path.Combine(_baseDirectory, GetDefaultFileExtension(DateTime.Now.ToString("yyyy-MM-dd") + "-logs", extension));
+            _filePathForErrorLogs = Path.Combine(_baseDirectory, GetDefaultFileExtension(DateTime.Now.ToString("yyyy-MM-dd") + "-errors", extension));
             AddReferenceToStaticLists();
         }
 
-        public CustomLogger(string baseDirectoryWithAbsolutePath, string fileNameWithExtensionForLog, string FileNameWithExtensionForErrors, string referenceId = null)
+        /// <summary>
+        ///  Alternative Class Constructor
+        /// </summary>
+        /// <param name="folderName">Only Folder name without any path</param>
+        /// <param name="fileNameForLogs">Logs - Only File Name without any path. If you provide extension e.g filename.txt then default file extension is ignored else default file extension is added</param>
+        /// <param name="fileNameForErrors">Errors - Only File Name without any path. If you provide extension e.g filename.txt then default file extension is ignored else default file extension is added</param>
+        /// <param name="baseDirectoryWithAbsolutePath">This is optional if you want to provide abosolute directory path e.g something like c:\\yourfolder\\ etc. Leave this blank if not sure</param>
+        /// <param name="referenceId">Its is supposed to be a unique value. Leave it blank if not sure. Windows will generate a unique Guid value automatically</param>   
+        ///<param name="fileExtension">If No extension is specified in fileNameForLogs or fileNameForErrors then this default file extension is added in the end.</param>
+        public CustomLogger(string folderName, string fileNameForLogs = null, string fileNameForErrors = null, 
+            string baseDirectoryWithAbsolutePath = null,string referenceId = null, FileExtension fileExtension = FileExtension.txt)
         {
-            if (fileNameWithExtensionForLog.Length > 0 && fileNameWithExtensionForLog.Contains('.'))
+            if (string.IsNullOrWhiteSpace(folderName))
             {
-                fileNameWithExtensionForLog = fileNameWithExtensionForLog.Trim();
+                folderName = _defaultFolderName;
+            }           
+
+            if (string.IsNullOrWhiteSpace(baseDirectoryWithAbsolutePath))
+            {
+                _baseDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, folderName.Trim());
+            }
+            else
+            {
+                _baseDirectory = Path.Combine(baseDirectoryWithAbsolutePath.Trim(),folderName.Trim());
             }
 
-            if (FileNameWithExtensionForErrors.Length > 0 && FileNameWithExtensionForErrors.Contains('.'))
+            if (string.IsNullOrWhiteSpace(fileNameForLogs))
             {
-                FileNameWithExtensionForErrors = FileNameWithExtensionForErrors.Trim();
+                fileNameForLogs = Path.Combine(_baseDirectory, GetDefaultFileExtension(DateTime.Now.ToString("yyyy-MM-dd") + "-logs", fileExtension));
+            }
+            else 
+            {
+                fileNameForLogs = Path.Combine(_baseDirectory, GetDefaultFileExtension(fileNameForLogs.Trim(), fileExtension));
             }
 
-            baseDirectoryWithAbsolutePath = baseDirectoryWithAbsolutePath.Trim();
+            if (string.IsNullOrWhiteSpace(fileNameForErrors))
+            {
+                fileNameForErrors = Path.Combine(_baseDirectory, GetDefaultFileExtension(DateTime.Now.ToString("yyyy-MM-dd") + "-errors", fileExtension));
+            } 
+            else
+            {
+                fileNameForErrors = Path.Combine(_baseDirectory,GetDefaultFileExtension( fileNameForErrors.Trim(), fileExtension));
+            }
+            
             try
             {
-                if (!Directory.Exists(baseDirectoryWithAbsolutePath))
+                if (!Directory.Exists(_baseDirectory))
                 {
-                    Directory.CreateDirectory(baseDirectoryWithAbsolutePath);
-                    _baseDirectory = baseDirectoryWithAbsolutePath;
+                    Directory.CreateDirectory(_baseDirectory);                    
                 }
             }
             catch (Exception Ex)
-            {
-                throw new Exception("Unable to Create Directory with the following path - " + baseDirectoryWithAbsolutePath, Ex);
+            {               
+               throw new Exception("Unable to Create Directory with the following path - " + _baseDirectory, Ex);               
             }
-
             _referenceId = string.IsNullOrWhiteSpace(referenceId) ? Guid.NewGuid().ToString() : referenceId;            
-            _filePathForNormalLogs = Path.Combine(_baseDirectory, fileNameWithExtensionForLog);
-            _filePathForErrorLogs = Path.Combine(_baseDirectory, FileNameWithExtensionForErrors);
+            _filePathForNormalLogs = Path.Combine(_baseDirectory, fileNameForLogs);
+            _filePathForErrorLogs = Path.Combine(_baseDirectory, fileNameForErrors);
         }
 
         private void AddReferenceToStaticLists()
@@ -200,8 +259,7 @@ namespace HelperUtilities.IO
         public static CustomLogger GetLoggerInstance(HttpRequestMessage request)
         {
             string referenceId = string.Empty;
-            IEnumerable<string> str;
-            request.Headers.TryGetValues(_guidKeyName, out str);
+            request.Headers.TryGetValues(_guidKeyName, out IEnumerable<string> str);
             referenceId = str.FirstOrDefault();
             return GetLoggerInstance(referenceId);
         }
@@ -287,26 +345,38 @@ namespace HelperUtilities.IO
         }
 
         /// <summary>
-        /// Returns Absolute FileName with its Path so that File.Delete operation can be performed after with some post processing.
+        /// 
         /// </summary>
-        /// <param name="message">Your Custom Encoded string (Default to UTF-8)</param>
-        /// <param name="fileNameWithExtension">File Name should be WITHOUT absolute folder path as that will be added automatically in final path</param>
-        /// <param name="encoding">Defaults to UTF-8 Encoding</param>
+        /// <param name="fileTextContent"></param>
+        /// <param name="folderName"></param>
+        /// <param name="fileNameWithoutExtension"></param>
+        /// <param name="encoding">By Default Supports UTF-8 for maximum compatiblity</param>
+        /// <param name="baseDirectory">By Default selects the root application folder.If provided then it should be an absolute url if provided e.g `c:\\yourfolder\\yourfoldersub` etc</param>
         /// <returns></returns>
-        public static string LogAndReturnFileNameWithPath(string message, string fileNameWithExtension = null, Encoding encoding = null)
+        public static string LogAndReturnFileNameWithPath(string fileTextContent, string folderName = null,  string fileNameWithoutExtension = null, FileExtension fileExtension, Encoding encoding = null, string baseDirectory = null)
         {
+            if (string.IsNullOrWhiteSpace(baseDirectory))
+            {
+                baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            }
+
+            if (string.IsNullOrWhiteSpace(folderName))
+            {
+                folderName = "log";
+            }
+
             encoding = encoding ?? Encoding.UTF8;
             string completeFilePathWithExtension = string.Empty;
             lock (_syncRandomFileWriteObject)
             {
-                if (string.IsNullOrWhiteSpace(fileNameWithExtension))
+                if (string.IsNullOrWhiteSpace(fileNameWithoutExtension))
                 {
-                    fileNameWithExtension = Guid.NewGuid().ToString();
+                    fileNameWithoutExtension = Guid.NewGuid().ToString();
                 }
-                completeFilePathWithExtension = Path.Combine(_baseDirectory, fileNameWithExtension);
+                completeFilePathWithExtension = Path.Combine(baseDirectory, folderName, GetDefaultFileExtension(fileNameWithoutExtension, fileExtension));
                 using (StreamWriter sw = new StreamWriter(completeFilePathWithExtension, false, encoding))
                 {
-                    sw.Write(message);
+                    sw.Write(fileTextContent);
                 }
             }
             return completeFilePathWithExtension;
