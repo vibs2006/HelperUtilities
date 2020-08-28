@@ -1,13 +1,14 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace HelperUtilities.IO
 {
@@ -21,6 +22,8 @@ namespace HelperUtilities.IO
         private static readonly object _syncObject = new object();
         private static readonly object _syncRandomFileWriteObject = new object();
         private static readonly object _syncListCustomLoggerClass = new object();
+        private static readonly object _syncSqlParams = new object();
+        private static readonly object _syncDapperParams = new object();
         private static string _baseDirectory;
         private static string _defaultFolderName = "log";
         private static IDictionary<string, CustomLogger> _listInstances;
@@ -76,6 +79,52 @@ namespace HelperUtilities.IO
 
             //Following method will delete any file older than 30 days (of .txt type)
             DeleteFilesOlderMoreThanNdays(60);
+        }
+
+        public static string GetSqlParamsLogWithSPandCallerMethodName(
+            SqlParameter[] sqlPrms
+            , string ProcedureName = ""
+            , StringBuilder sb = null
+            , [CallerMemberName] string callerMethodName = ""
+            )
+        {
+            lock (_syncSqlParams)
+            {
+                if (sqlPrms != null && sqlPrms.Count() > 0)
+                {
+                    sb = sb ?? new StringBuilder();
+                    if (!string.IsNullOrWhiteSpace(callerMethodName))
+                    {
+                        sb.AppendLine($"Caller Method Name is {callerMethodName}");
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(ProcedureName))
+                    {
+                        sb.AppendLine($"Name of Stored Procedure is {ProcedureName}");
+                    }
+
+                    foreach (var sqlparam in sqlPrms)
+                    {
+                        sb.AppendLine();
+                        string val = string.Empty;
+                        sb.Append($"{sqlparam.ParameterName}:");
+                        if (sqlparam.Value != null)
+                        {
+                            val = sqlparam.Value.ToString();
+                            if (val.Length > 80)
+                            {
+                                sb.AppendLine();
+                                sb.AppendLine($"{val}");
+                            }
+                            else
+                            {
+                                sb.AppendLine($" {sqlparam.Value}");
+                            }
+                        }
+                    }
+                }
+                return string.Empty; 
+            }
         }
 
         public static string GetDefaultFileExtension(string fileName, FileExtension extension = FileExtension.txt)
