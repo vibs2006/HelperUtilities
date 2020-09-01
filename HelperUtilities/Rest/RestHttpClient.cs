@@ -5,6 +5,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using HelperUtilities.Text;
+using System.Collections.Generic;
+using System.Runtime.Remoting.Messaging;
 
 namespace HelperUtilities.Rest
 {
@@ -67,7 +69,9 @@ namespace HelperUtilities.Rest
 
 
         public static string HttpGetRequest<OutputObjectType>(string url, out StringBuilder sb, out bool isHttpRequestSuccessful,
-            MediaType AcceptMediaType = MediaType.texthtml, string AuthorizationHeaderValue = null)
+            MediaType AcceptMediaType = MediaType.texthtml, string AuthorizationHeaderValue = null
+            , Dictionary<string, string> headersKeyValuePairCollection = null
+            )
         {
             sb = new StringBuilder();
             isHttpRequestSuccessful = false;
@@ -90,6 +94,14 @@ namespace HelperUtilities.Rest
                 objHttpRequestMessage.Headers.Add("Authorization", AuthorizationHeaderValue);
                 sb.AppendLine("Authorization Header Found with value " + AuthorizationHeaderValue);
             }
+            if (headersKeyValuePairCollection != null && headersKeyValuePairCollection.Count > 0)
+            {
+                foreach (var header in headersKeyValuePairCollection)
+                {
+                    objHttpRequestMessage.Headers.Add(header.Key, header.Value);
+                }
+            }
+
             objHttpRequestMessage.RequestUri = new Uri(url.Trim());
             sb.AppendLine($"*********Request to url starts at {url.Trim()} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})");
             HttpResponseMessage objHttpResponseMessage = null;
@@ -126,7 +138,9 @@ namespace HelperUtilities.Rest
         }
 
         public static OutputObjectType HttpGetRequestWithJsonReturnData<OutputObjectType>(string url, out StringBuilder sb, out bool isHttpRequestSuccessful,
-            MediaType AcceptMediaType = MediaType.json, string AuthorizationHeaderValue = null)
+            MediaType AcceptMediaType = MediaType.json, string AuthorizationHeaderValue = null
+            , Dictionary<string, string> headersKeyValuePairCollection = null
+            )
         {
             sb = new StringBuilder();
             isHttpRequestSuccessful = false;
@@ -152,6 +166,16 @@ namespace HelperUtilities.Rest
                 objHttpRequestMessage.Headers.Add("Authorization", AuthorizationHeaderValue);
                 sb.AppendLine("Authorization Header Found with value " + AuthorizationHeaderValue);
             }
+
+            if (headersKeyValuePairCollection != null && headersKeyValuePairCollection.Count > 0)
+            {
+                foreach (var header in headersKeyValuePairCollection)
+                {
+                    objHttpRequestMessage.Headers.Add(header.Key, header.Value);
+                }
+            }
+
+
             objHttpRequestMessage.RequestUri = new Uri(url.Trim());
             sb.AppendLine($"*********Request to url starts at {url.Trim()} ({DateTime.Now.ToString("yyyy MM dd HH:mm:ss")})");
             HttpResponseMessage objHttpResponseMessage = null;
@@ -187,7 +211,7 @@ namespace HelperUtilities.Rest
         }
 
         public static OutputObjectType HttpJsonPost<InputObjectType, OutputObjectType>(string url, InputObjectType inputJsonObject, out StringBuilder sb, out bool IsHttpRequestSuccessful,
-            MediaType mediaTypeEnum = MediaType.json, string AuthorizationHeaderValue = null, Encoding encoding = null)
+            MediaType mediaTypeEnum = MediaType.json, string AuthorizationHeaderValue = null, Encoding encoding = null, Dictionary<string, string> headersKeyValuePairCollection = null)
         {
             sb = new StringBuilder();
             IsHttpRequestSuccessful = false;
@@ -197,7 +221,7 @@ namespace HelperUtilities.Rest
 
             if (client == null)
             {
-                initialize(url);             
+                initialize(url);
             }
 
             if (mediaTypeEnum != MediaType.json)
@@ -213,6 +237,14 @@ namespace HelperUtilities.Rest
             {
                 objHttpRequestMessage.Headers.Add("Authorization", AuthorizationHeaderValue);
             }
+            if (headersKeyValuePairCollection != null && headersKeyValuePairCollection.Count > 0)
+            {
+                foreach (var header in headersKeyValuePairCollection)
+                {
+                    objHttpRequestMessage.Headers.Add(header.Key, header.Value);
+                }
+            }
+
             objHttpRequestMessage.RequestUri = new Uri(url);
             string stringContent = string.Empty;
 
