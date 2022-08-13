@@ -111,13 +111,12 @@ namespace HelperUtilities.Text
 
         public static string ConvertFromBase64StringToNormalString(string base64EncodedString)
         {
-
             if (string.IsNullOrWhiteSpace(base64EncodedString)) return string.Empty;
             try
             {
                 return Encoding.Default.GetString(Convert.FromBase64String(base64EncodedString));
             }
-            catch (Exception Ex)
+            catch 
             {
                 throw;
             }            
