@@ -102,5 +102,26 @@ namespace HelperUtilities.Text
                         .Replace(lineSeparator, string.Empty)
                         .Replace(paragraphSeparator, string.Empty);
         }
+
+        public static string ConvertToBase64String(string inputString)
+        {
+            if (string.IsNullOrWhiteSpace(inputString)) return string.Empty;
+            return Convert.ToBase64String(Encoding.Default.GetBytes(inputString));
+        }
+
+        public static string ConvertFromBase64StringToNormalString(string base64EncodedString)
+        {
+
+            if (string.IsNullOrWhiteSpace(base64EncodedString)) return string.Empty;
+            try
+            {
+                return Encoding.Default.GetString(Convert.FromBase64String(base64EncodedString));
+            }
+            catch (Exception Ex)
+            {
+                throw;
+            }            
+        }
+
     }
 }
