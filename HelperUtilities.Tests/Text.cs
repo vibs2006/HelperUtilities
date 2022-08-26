@@ -17,5 +17,30 @@ namespace HelperUtilities.Tests
                 Trace.WriteLine(HelperUtilities.Text.StaticTextUtils.GenerateRandomWord());
             }
         }
+
+        [TestMethod]
+        public void TestBase32EncodeAndDecode()
+        {
+
+            TestInputOutputForBase32StringConversion("vaibhav@parcelhero.in");
+
+            TestInputOutputForBase32StringConversion("123vaibhav@parcelhero.in");
+
+            TestInputOutputForBase32StringConversion("123vaibhav@parcelhero.in1234");
+
+            TestInputOutputForBase32StringConversion("12235656");
+
+        }
+
+        private void TestInputOutputForBase32StringConversion(string inputString)
+        {
+            Trace.WriteLine("*********************");
+            Trace.WriteLine($"Original String is {inputString}");
+            var outputString = Base32.ToBase32String(inputString);
+            Trace.WriteLine("Output String is " + outputString);
+            var convertedBackString = Base32.FromBase32String(outputString);
+            Trace.WriteLine("Original String is " + convertedBackString);
+            Trace.WriteLine("*********************");
+        }
     }
 }
