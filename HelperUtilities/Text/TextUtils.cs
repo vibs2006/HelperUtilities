@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -120,6 +121,39 @@ namespace HelperUtilities.Text
             {
                 throw;
             }            
+        }
+
+        public static Stream GetStreamFromText(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return null;
+
+            Stream _stream = new MemoryStream();
+            byte[] bytes = Encoding.UTF8.GetBytes(text);
+            _stream.Write(bytes, 0, bytes.Length);
+            _stream.Position = 0;
+            return _stream;
+        }
+
+        public static string GetUTF8TextFromSteam(Stream _stream)
+        {
+            if (_stream == null) return string.Empty;
+
+            StringBuilder _sb = new StringBuilder();
+
+            if (_stream.Position != 0)
+            {
+                _stream.Position = 0;
+            }
+
+            using (StreamReader _wr = new StreamReader(_stream))
+            {
+
+                while (!_wr.EndOfStream)
+                {
+                    _sb.AppendLine(_wr.ReadLine());
+                }
+            }
+            return _sb.ToString();
         }
 
     }

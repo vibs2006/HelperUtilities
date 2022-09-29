@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using HelperUtilities.Text;
 using System.Diagnostics;
+using System.IO;
 
 namespace HelperUtilities.Tests
 {
@@ -9,12 +10,20 @@ namespace HelperUtilities.Tests
     public class Text
     {
         [TestMethod]
+        public void TestTextFromStreamAndBack()
+        {
+            Stream stream = StaticTextUtils.GetStreamFromText("This is Test.\nThis is Test Line2\nTest is Test Line3");
+
+            Trace.Write(StaticTextUtils.GetUTF8TextFromSteam(stream));
+        }
+
+        [TestMethod]
         public void GenerateRandomWords()
         {
             Trace.WriteLine("Generating 10 Random Numbers");
             for(int i = 1; i <= 10; i++)
             {
-                Trace.WriteLine(HelperUtilities.Text.StaticTextUtils.GenerateRandomWord());
+                Trace.WriteLine(StaticTextUtils.GenerateRandomWord());
             }
         }
 
