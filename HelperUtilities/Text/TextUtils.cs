@@ -11,7 +11,6 @@ namespace HelperUtilities.Text
     public static class StaticTextUtils
     {
         static Random random = new Random();
-
         public static string RemoveLineBreaks(this string lines)
         {
             return lines.Replace("\r", "").Replace("\n", "");
