@@ -3,11 +3,10 @@ using MimeKit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace HelperUtilities.MailKitNew
 {
+
+
     public class MailHelper
     {
         int _port = 587;
@@ -44,7 +43,7 @@ namespace HelperUtilities.MailKitNew
                         .Replace("<br>", Environment.NewLine);
         }
 
-        public bool SendMail(string toEmail,string toName, string FromEmail, string fromEmailName, string subject, string body)
+        public bool SendMail(string toEmail, string toName, string FromEmail, string fromEmailName, string subject, string body)
         {
             return SendMail(new Dictionary<string, string>
             {
@@ -56,14 +55,14 @@ namespace HelperUtilities.MailKitNew
         {
             if (toEmail is null || toEmail.Count == 0) return false;
             Dictionary<string, string> _dict = new Dictionary<string, string>();
-            foreach(string k in toEmail)
+            foreach (string k in toEmail)
             {
                 _dict.Add(k, k);
             }
             return SendMail(_dict, FromEmail, fromEmailName, subject, body);
         }
 
-        public bool SendMail(Dictionary<string,string> _dictTobeSent, string fromEmailAddress = null, string fromEmailName = null, string subject = null , string body = null)
+        public bool SendMail(Dictionary<string, string> _dictTobeSent, string fromEmailAddress = null, string fromEmailName = null, string subject = null, string body = null)
         {
             fromEmailAddress = fromEmailAddress ?? _fromEmailAddress;
             fromEmailName = fromEmailName ?? _fromEmailName;
@@ -75,7 +74,7 @@ namespace HelperUtilities.MailKitNew
             if (_dictTobeSent is null || _dictTobeSent.Count == 0) return false;
             foreach (KeyValuePair<string, string> _dict in _dictTobeSent)
             {
-                message.To.Add(new MailboxAddress(name:_dict.Value, address: _dict.Key));
+                message.To.Add(new MailboxAddress(name: _dict.Value, address: _dict.Key));
             }
 
             message.To.Add(new MailboxAddress(
@@ -84,7 +83,7 @@ namespace HelperUtilities.MailKitNew
                 ));
 
             message.Subject = subject;
-            
+
             var textPart = new TextPart(_isHtml == true ? "html" : "plain");
 
             if (_isHtml)
@@ -94,7 +93,7 @@ namespace HelperUtilities.MailKitNew
             else
             {
                 textPart.Text = ReplaceHtmlFromLineBreaks(body);
-            }            
+            }
 
             message.Body = textPart;
 
@@ -155,38 +154,39 @@ namespace HelperUtilities.MailKitNew
 
             Example 2
         var message = new MimeMessage();
-// add from, to, subject and other needed properties to your message
+    // add from, to, subject and other needed properties to your message
 
-var builder = new BodyBuilder();
-builder.HtmlBody = htmlContent;
-builder.TextBody = textContent;
+    var builder = new BodyBuilder();
+    builder.HtmlBody = htmlContent;
+    builder.TextBody = textContent;
 
-// you can either create MimeEntity object(s)
-// this might get handy in case you want to pass multiple attachments from somewhere else
-byte[] myFileAsByteArray = LoadMyFileAsByteArray();
-var attachments = new List<MimeEntity>
-{
+    // you can either create MimeEntity object(s)
+    // this might get handy in case you want to pass multiple attachments from somewhere else
+    byte[] myFileAsByteArray = LoadMyFileAsByteArray();
+    var attachments = new List<MimeEntity>
+    {
     // from file
     MimeEntity.Load("myFile.pdf"),
     // file from stream
     MimeEntity.Load(new MemoryStream(myFileAsByteArray)),
     // from stream with a content type defined
     MimeEntity.Load(new ContentType("application", "pdf"), new MemoryStream(myFileAsByteArray))
-}
+    }
 
-// or add file directly - there are a few more overloads to this
-builder.Attachments.Add("myFile.pdf");
-builder.Attachments.Add("myFile.pdf", myFileAsByteArray);
-builder.Attachments.Add("myFile.pdf", myFileAsByteArray , new ContentType("application", "pdf"));
+    // or add file directly - there are a few more overloads to this
+    builder.Attachments.Add("myFile.pdf");
+    builder.Attachments.Add("myFile.pdf", myFileAsByteArray);
+    builder.Attachments.Add("myFile.pdf", myFileAsByteArray , new ContentType("application", "pdf"));
 
-// append previously created attachments
-foreach (var attachment in attachments)
-{
+    // append previously created attachments
+    foreach (var attachment in attachments)
+    {
     builder.Attachments.Add(attachment);
-}
+    }
 
-message.Body = builder.ToMessageBody();
+    message.Body = builder.ToMessageBody();
          */
 
     }
+
 }
