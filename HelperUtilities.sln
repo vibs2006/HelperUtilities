@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29509.3
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32922.545
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelperUtilities", "HelperUtilities\HelperUtilities.csproj", "{3961A5B8-74C9-4082-BB1D-3F69140F9130}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XmlTests", "XmlTests\XmlTests.csproj", "{95C762A8-73FD-4B35-983F-F0904AA685C9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApi2Demos", "WebApi2Demos\WebApi2Demos.csproj", "{E79D31FA-6133-4058-BDBA-2A6E43E1E94C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelperUtilities.MailKitNew", "HelperUtilities.MailKitNew\HelperUtilities.MailKitNew.csproj", "{96A2E323-153B-40B5-8A0A-F6D14E885666}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{E79D31FA-6133-4058-BDBA-2A6E43E1E94C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E79D31FA-6133-4058-BDBA-2A6E43E1E94C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E79D31FA-6133-4058-BDBA-2A6E43E1E94C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96A2E323-153B-40B5-8A0A-F6D14E885666}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96A2E323-153B-40B5-8A0A-F6D14E885666}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96A2E323-153B-40B5-8A0A-F6D14E885666}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96A2E323-153B-40B5-8A0A-F6D14E885666}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

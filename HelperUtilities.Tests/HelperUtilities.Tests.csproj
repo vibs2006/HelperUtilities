@@ -8,7 +8,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>HelperUtilities.Tests</RootNamespace>
     <AssemblyName>HelperUtilities.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -56,10 +56,15 @@
     <Compile Include="Common.cs" />
     <Compile Include="Text.cs" />
     <Compile Include="Collections.cs" />
+    <Compile Include="MailUnitTests.cs" />
     <Compile Include="UnitTestsHelperUtlities.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\HelperUtilities.MailKitNew\HelperUtilities.MailKitNew.csproj">
+      <Project>{96a2e323-153b-40b5-8a0a-f6d14e885666}</Project>
+      <Name>HelperUtilities.MailKitNew</Name>
+    </ProjectReference>
     <ProjectReference Include="..\HelperUtilities\HelperUtilities.csproj">
       <Project>{3961a5b8-74c9-4082-bb1d-3f69140f9130}</Project>
       <Name>HelperUtilities</Name>

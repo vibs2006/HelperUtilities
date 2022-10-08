@@ -24,7 +24,7 @@ namespace HelperUtilities.Text
 
         public static string ReplaceLineBreaks(this string lines, string replacement)
         {
-            return lines.Replace("\r\n", replacement)
+            return lines.Replace(Environment.NewLine, replacement)
                         .Replace("\r", replacement)
                         .Replace("\n", replacement);
         }
