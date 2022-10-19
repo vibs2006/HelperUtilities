@@ -57,6 +57,7 @@
     <Compile Include="Reflection\ReflectionStaticUtils.cs" />
     <Compile Include="Rest\RestHttpClient.cs" />
     <Compile Include="Text\Base32.cs" />
+    <Compile Include="Text\StringCompression.cs" />
     <Compile Include="Text\TextFileEncodingDetector.cs" />
     <Compile Include="Text\TextUtils.cs" />
   </ItemGroup>

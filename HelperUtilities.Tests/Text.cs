@@ -21,7 +21,7 @@ namespace HelperUtilities.Tests
         public void GenerateRandomWords()
         {
             Trace.WriteLine("Generating 10 Random Numbers");
-            for(int i = 1; i <= 10; i++)
+            for (int i = 1; i <= 10; i++)
             {
                 Trace.WriteLine(StaticTextUtils.GenerateRandomWord());
             }
@@ -40,6 +40,19 @@ namespace HelperUtilities.Tests
             TestInputOutputForBase32StringConversion("12235656");
 
         }
+
+        [TestMethod]
+        public void TestCompressionAndUncompressionOfText()
+        {
+            string str = "Hello World 1";
+            string compressed = StringCompression.Compress(str);
+            Trace.WriteLine($"Compressex Text is");
+            Trace.WriteLine(compressed);
+            Trace.WriteLine("Text Recovered from uncompression is");
+            string uncompressed = StringCompression.Decompress(compressed);
+            Trace.WriteLine(uncompressed);
+        }
+
 
         private void TestInputOutputForBase32StringConversion(string inputString)
         {
