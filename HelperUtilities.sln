@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApi2Demos", "WebApi2Demo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelperUtilities.MailKitNew", "HelperUtilities.MailKitNew\HelperUtilities.MailKitNew.csproj", "{96A2E323-153B-40B5-8A0A-F6D14E885666}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelperUtilities.SerilogHelper", "HelperUtilities.SerilogHelper\HelperUtilities.SerilogHelper.csproj", "{1EF8C32E-66BB-4A5D-9445-666D651074BA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{96A2E323-153B-40B5-8A0A-F6D14E885666}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96A2E323-153B-40B5-8A0A-F6D14E885666}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96A2E323-153B-40B5-8A0A-F6D14E885666}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EF8C32E-66BB-4A5D-9445-666D651074BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EF8C32E-66BB-4A5D-9445-666D651074BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EF8C32E-66BB-4A5D-9445-666D651074BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EF8C32E-66BB-4A5D-9445-666D651074BA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
